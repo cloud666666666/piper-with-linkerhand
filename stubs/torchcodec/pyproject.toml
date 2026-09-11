@@ -1,0 +1,12 @@
+# 元数据存根包:torchcodec 没有兼容 Jetson(aarch64) + torch 2.5 的轮子。
+# lerobot 在运行时检测不到 torchcodec 时会自动回退到 pyav 解码,
+# 此包仅用于满足 lerobot 对 torchcodec>=0.2.1 的依赖声明。
+[project]
+name = "torchcodec"
+version = "0.2.1"
+description = "Metadata-only stub: lerobot falls back to pyav video decoding on Jetson."
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

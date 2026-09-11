@@ -1,0 +1,353 @@
+# lerobo机械臂为COM*，piper机械臂为can*
+arm_port: can4
+arm_offset:
+  # - 0
+  # - 0
+  # - 0
+  # - 0.0
+  # - 0
+  # - 0
+
+# 机械臂类型，lerobo或piper
+arm_type: piper
+
+# 机械臂运动速度百分比 1-100，100 为全速，值越小越慢越平稳
+arm_move_speed: 50
+
+# 关节角向量允许的均方误差阈值，小于该值认为到达目标点，单位平方度
+arm_reach_mse_threshold_deg2: 1.0
+
+# 不用远程摄像头则置空
+camera_ip: 
+camera_port: 8084
+
+# 以web形式显示图片的端口（起一个网络服务器），以便在无图形化环境运行，置空则直接用opencv的图片显示窗口
+cv2_headless_port: 8079
+
+# 默认桌面高度，即在机械臂坐标系下桌面的z坐标，单位米
+default_desktop_height: 0.135
+
+# 抓取动作间的停顿时间，单位秒
+catch_time_interval_s: 0.5
+
+# 获取机械臂各舵机角度值的重试次数
+get_arm_angles_retry_times: 3
+
+# 机械臂移动到旁边的位置，以免挡住相机视野，(x,y,z)，单位米
+# default_gripper_aside_pos:
+#   - 0.0
+#   - 0.2
+#   - 0.15
+
+# =======大模型=======
+
+# 请求大模型的平台url
+# llm_base_url: https://openrouter.ai/api/v1
+# llm_base_url: https://api.ohmygpt.com/v1
+llm_base_url: http://<llm-server-ip>:8001/v1
+
+# 大模型平台的api_key，本地部署则随便填，但不要为空
+llm_api_key: any
+
+# 提示词文件
+prompts_file: prompts.toml
+
+# 代理地址，如请求大模型失败可设置或取消代理
+https_proxy: <proxy-host>:7890
+
+# 使用的大模型名称，见https://openrouter.ai/models 或 https://www.ohmygpt.com/models，必须是支持多模态输入的模型
+# llm_model: gemini-3-flash-preview
+# 或指定本地部署的模型
+llm_model: output/merged-qwen3.5-9b-graspdet
+
+# 如果相机是在机械臂对面，视角和机械臂视角相反（机械臂在画面上方），则设为true
+# 主要影响大模型的左右判断
+RotationCam2Arm: true
+
+
+# 语音转文字后端: "xunfei" 使用讯飞，其他值使用自部署语音转文字服务
+audio2text_backend: no-xunfei
+
+# 自部署语音转文字服务地址
+whisper_url: http://<whisper-server-ip>:8000
+whisper_username: your_username
+whisper_password: your_password
+
+# 语音转文字APIID（讯飞）
+APPID: 
+
+# 语音转文字APISecret
+APISecret: 
+
+# 语音转文字APIKey
+APIKey: 
+
+
+# =======物品分类场景=======
+
+# 以项目根目录为基准
+classification_YOLO_model_path:
+  - /home/czn/roboarm/object_detect/runs/best.pt
+
+# 默认YOLO识别置信度阈值
+default_conf_thres: 0.5
+
+# 夹爪闭合阈值，小于该值认为夹取失败，范围是[0,1]，越大越开，1表示完全张开（不是角度）
+default_gripper_close_threshold: 0.05
+
+# 各类别放置位置，(x,y)，单位米
+# - pos: 录制阶段固定放置位置
+#     字符串（符号坐标）：x/-x/y/-y 分别表示 target_x/-target_x/target_y/-target_y
+#     数值（绝对坐标）：如 [0.2, 0.4] 直接使用该固定位置
+# - random_pos: auto-reset 阶段随机撒回范围，
+#     两元素列表 [[x_min, x_max], [y_min, y_max]]，与 pos 格式对齐
+# 未匹配到类别时使用下方 default 条目
+class_pos:
+  default:
+    pos: [0.05, 0.45] #
+    random_pos:
+      - [0.0, 0.45]
+      - [-0.3, 0.3]
+  potato:
+    pos: [0.05, 0.4]
+    random_pos:
+      - [0.2, 0.45]
+      - [-0.3, -0.1]
+    keywords:
+      - 'potato'
+      - '土豆'
+  tomato:
+    pos: [0.05, 0.4]
+    random_pos:
+      - [0.2, 0.45]
+      - [-0.1, 0.1]
+    keywords:
+      - 'tomato'
+      - '西红柿'
+  carrot:
+    pos: [0.05, 0.4]
+    random_pos:
+      - [0.2, 0.45]
+      - [0.1, 0.3]
+    keywords:
+      - 'carrot'
+      - '胡萝卜'
+
+# 各类别放置位置，(x,y)，单位米，xy分别表示其原始位置xy，未指定则放回原处
+# keywords表示大模型输出的标签中含有其中某个关键词即认为是这个类别
+place_pos:
+  potato:
+    pos:
+      - x
+      - -y
+    keywords:
+      - 'potato'
+      - '土豆'
+  tomato:
+    pos:
+      - x
+      - -y
+    keywords:
+      - 'tomato'
+      - '西红柿'
+  carrot:
+    pos:
+    - x
+    - -y
+    keywords:
+      - 'carrot'
+      - '胡萝卜'
+random_pos:
+  potato:
+    pos:
+      - x
+      - -y
+    keywords:
+      - 'potato'
+      - '土豆'
+  tomato:
+    pos:
+      - x
+      - -y
+    keywords:
+      - 'tomato'
+      - '西红柿'
+  carrot:
+    pos:
+    - x
+    - -y
+    keywords:
+      - 'carrot'
+      - '胡萝卜'
+# 离放置位置多近时无需抓取，以免反复抓放，单位米，未指定则为0
+place_distance_threshold: 0.00
+
+# 抓取时为避免刚好顶到物体，夹爪向外偏移一些的距离，单位米
+catch_offset: 0.00
+
+# 抓取前抬起的高度，单位米
+catch_raise_height: 0.1
+
+# 放置前抬起的高度，单位米
+place_raise_height: 0.1
+
+# 放置时是否先下降再松开夹爪，默认否
+go_down_before_open_gripper_in_place: true
+
+# --- auto-reset（随机撒回桌面）参数 ---
+# 各类别的随机撒回范围已移至上方 class_pos.{类别}.random_pos 中
+# 工作空间边界，(x_min, x_max)，超出此范围的坐标会被拒绝
+workspace_x_range: [-0.1, 0.55]
+workspace_y_range: [-0.3, 0.55]
+# 随机放置位置离抓取点的最小距离，单位米
+reset_min_place_dist_m: 0.20
+# 每轮最多随机撒回的物体数量
+reset_max_objects_per_cycle: 1
+
+# =======灵心巧手（LinkerHand）灵巧手场景=======
+
+# 灵巧手 Python SDK 仓库根目录（git clone 的 linkerhand-python-sdk 目录），
+# 留空则要求 SDK 已加入 python 环境（PYTHONPATH）
+linker_hand_sdk_path:
+
+# 手类型与型号：left/right，O6/L6/L7/L10/G20/L20/L21/L25。
+# 手别决定 SDK 的 CAN id（左 0x28 / 右 0x27）与默认手势表（arm/linker_hand.py
+# 按手别内置了 O6 的张开/握拳默认值；SDK 内部不做镜像，请与实际装的手一致；
+# 例如右手张开为 [255,70,...]，左手为 [255,179,...]）。
+linker_hand_type: right
+linker_hand_joint: O6
+
+# 通讯配置：O6 右手走 **Modbus RTU 串口**（RS485，115200 8N1，功能码 04 读 /
+# 16 写），SDK 侧链路：linker_hand_api.py:25-31 →
+# core/rs485/linker_hand_o6_rs485.py；关节值范围 0~255（与 CAN 路径相同，
+# 无需换算）。站号由 linker_hand_type 决定：右手 0x27(39)、左手 0x28(40)；
+# 波特率 115200 由 SDK 固定（api 构造里硬编码）。
+# **串口设备名**：SDK LinkerHand/config/setting.yaml 的 RIGHT_HAND.MODBUS
+# 已写 "/dev/ttyUSB0"（同文件标 RIGHT_HAND.EXISTS/JOINT=O6/TOUCH），与本行一致；
+# 换转接器后按下面确认并同步两处：
+#   ls /dev/serial/by-id/ ; ls /dev/ttyUSB* ; dmesg | tail -20
+# 权限：RS485 模式需给 /dev/ttyUSB* 777 权限（或加入 dialout 组）。
+# 其余型号走 CAN 时 modbus 填 None、can 填接口名（Modbus 模式下 can 被忽略）。
+linker_hand_modbus: /dev/ttyUSB0
+linker_hand_can: can0
+
+# 手指运动速度与最大力矩（O6/L6 需 6 个值，L7 需 7 个，其他型号 5 个）
+linker_hand_speed: [120, 250, 250, 250, 250, 250]
+linker_hand_torque: [200, 200, 200, 200, 200, 200]
+
+# 抓取时手掌中心高于桌面的偏移量，单位米（灵巧手从上方包络物体，
+# 手掌需高于物体，按物体高度一半左右调整）
+linker_hand_grasp_height_offset: 0.04
+
+# 抓取成功判定：五个手指触觉值之和超过该阈值认为已抓到物体，
+# 0 表示不检查触觉（恒认为抓取成功）。
+# 注：SDK 的 LinkerHand/config/setting.yaml RIGHT_HAND.TOUCH 为 True 时说明
+# 手上带压力传感器，建议实机看触觉读数后把该阈值调到实测值。
+linker_hand_touch_threshold: 0
+
+# 包络抓取时物体宽度（米）→关节值的换算系数，越大手指张得越开
+linker_hand_grasp_size_scale: 2.0
+
+# 覆盖默认张开/握拳手势（长度须与型号关节数一致，留空使用内置默认）。
+# 张开默认 = SDK LinkerHand/config/O6_positions.yaml 的 RIGHT_HAND「张开」
+# = [255,70,255,255,255,255]；握拳 SDK 未定义右手版，内置默认取官方通用
+# 示例 example/O6/linker_hand_o6.py 的 [102,18,0,0,0,0]（待实机验证）。
+linker_hand_open_palm_pose:
+linker_hand_fist_pose:
+
+# --- 灵巧手水平包络抓取（平抓姿态，Linker 手装在 Piper 末端时用，
+#     对应 arm/piper_ctrl_by_sdk_flat_hand.py 和
+#     classification/catch_with_linker_hand_flat.py）---
+
+# 平抓示教基准姿态欧拉角 [RZ, RY, RX]，单位度（kinpy/URDF link6 系）。
+# 取 2026-09-10 示教样本2 关节角（J5 取固件命令限位内的 -69.9）的 kinpy
+# FK zyx 欧拉：掌面放平、工具 z 水平，对应抓取点方位角约 -4.2°。与真平掌
+# （J5=-74.85 示教姿态）差 4.95°，由 roll-aware IK 用 J2/J3 软补偿。
+# 抓取时的绕 z 朝向（rot_rad）是把该姿态绕世界 z 旋转，不再替换 RZ 分量。
+# 掌面平度/朝向不对时实机微调三分量。
+linker_hand_flat_euler_deg_zyx: [-142.249, 81.015, 149.475]
+
+# 平抓时钉死的腕关节列表，[[关节号(1起算), 角度(度)], ...]：IK 求解时这些
+# 关节固定在给定角度，其余关节求解。来源 2026-09-10 示教
+# （probe_joint_angles.py 采集）：J5 顶住限位、J6 自由小滚转 6.75。
+# 2026-09-10 真机实测：固件 J5 命令限位 ≈±70，示教读数 -74.85 仅为断使能
+# 手拖可达（命令停在 -70.01 并超时）。2026-09-11 Pareto 分析后取 -69.0：
+# 放松 1° 换平度 2.17°→0.88°、位置 1.9→5.0mm（均在抓取容差内）；
+# 若要物理顶死限位可改回 -69.9（残差 2.2°~3.9°）。
+linker_hand_pin_joints: [[5, -69.0], [6, 6.75]]
+
+# 双钉走廊模式的朝向偏移（度）：平抓朝向 = 抓取点方位角 + 该偏移。
+# 来源 2026-09-10 示教走廊规律（示教基准姿态对应方位角约 -4.2°，即
+# 朝向-方位角差 4.2°）；真机朝向不对（掌面没对准物体/滑入方向别扭）
+# 就微调此值
+linker_hand_flat_heading_offset_deg: 4.2
+
+# 平抓 2D 手眼标定文件（H: 像素 -> 掌心 + L: 臂长，联合模型），由
+# arm/calibrate_arm_hand.py（平抓标定，掌心对准画面点）生成；
+# 抓取脚本缺此文件时会提示先跑平抓标定。相对路径以项目根目录为基准。
+linker_hand_flat_handeye_file: arm/hand-eye-data/2d_homography_flat.npz
+
+# 启动时是否原地把被钉关节（linker_hand_pin_joints）转到平抓构型：
+# true 表示 PiperFlatHandSDK 一初始化（回 home 后）就原地固定手腕，
+# 之后全程保持平抓姿态、不再"先到位置再翻腕"。
+# 若 home 姿态原地翻腕有碰周边风险，设 false，改为先移动到安全点后
+# 手动调用 arm.pin_wrist_in_place()。
+linker_hand_pin_on_start: true
+
+# 平抓标定姿态校验开关：true 时每条记录校验"掌面处于平抓族（工具 z 离
+# 水平面 ≤11°）"，超差会在实时画面上提示并等键（按 y 仍记录 / 其他键或
+# 5 秒超时跳过，走 cv2_display 的 poll_key 通道）；false 时完全跳过判定
+# （仍打印 J5/J6/工具z 诊断，不提示不等待）。
+linker_hand_flat_pose_check_enabled: true
+
+# 平抓工作高度（绝对值，单位米）：test 模式与抓取脚本的统一来源。
+# 默认 0.11 = 原 default_desktop_height(0.15) + 偏移(0.01) - 0.05；
+# 实机在 test 模式验证合适后，抓取同步统一到该值。
+# 说明：default_desktop_height 与当前平抓场景实际可用高度不符，故用绝对值；
+# 日后若重测桌面高度可改回"相对桌面+偏移"。
+# 注：原 linker_hand_flat_test_height_delta_m 键已删除（由本键取代）。
+linker_hand_flat_grasp_height_m: 0.11
+
+# 水平滑入前，接近起点沿接近方向离目标的退距，单位米。**仅 slide_in 模式
+# 使用**（见下面的接近模式键）；值太小手会直接怼到物体，太大浪费时间且
+# 可能超出工作行程。
+linker_hand_flat_approach_backoff_m: 0.10
+
+# 抓取接近方式：
+# - direct_down（默认）：定位到目标正上方后垂直下抓——路径短、少中间状态，
+#   避免水平滑入时大拇指侧向扫过把物体推走（真机反馈）；
+# - slide_in：沿接近朝向后退 linker_hand_flat_approach_backoff_m 后水平滑入
+#   （旧行为，一行切回）。
+# 两种方式最终位姿完全相同（掌心落在目标、朝向 = 方位角+φ0），只有路径不同。
+linker_hand_flat_approach_mode: direct_down
+
+# 抓取模式：true（默认）＝完成**一次**抓取尝试（无论成功失败）后打印结果并
+# 退出，走正常收尾（回 home、断开等）——调试/验证用；false＝恢复连续抓取。
+# 单次模式下未命中目标时仍继续等待检测（不是"看一眼就退"）。
+linker_hand_flat_catch_once: true
+
+# 平抓时手掌中心高于桌面的偏移量，单位米（手从侧面水平包络物体，
+# 按物体高度实测调整）。双钉走廊高度上限约 z=0.17，z=0.16（desktop 0.15
+# 时即 0.01）的掌面平度明显优于 0.02/0.04；物体较高时再实测回调。
+# 注：平抓工作高度已改用 linker_hand_flat_grasp_height_m（绝对值），
+# 本键**不再参与高度计算**，保留仅为兼容旧脚本/参考。
+linker_hand_flat_grasp_height_offset: 0.01
+
+# =======主从臂跟随场景=======
+
+leader_port: COM5
+
+# =======中国象棋场景=======
+
+# 以项目根目录为基准
+chinese_chess_YOLO_model_path:
+  - object_detect\runs\中国象棋\best.pt
+
+# 夹爪张开的角度，张太大会碰到旁边的子，单位度
+gripper_open_degree: 30
+
+# 夹爪朝向固定角度，以棋盘对角线方向抓，防止碰到旁边的棋子，单位度
+gripper_direction_degree: 45
+
+# 默认YOLO识别置信度阈值
+chinese_chess_default_conf_thres: 0.7
