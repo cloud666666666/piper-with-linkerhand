@@ -743,3 +743,46 @@ roboarm/
   config.yaml       # 运行时配置
   prompts.toml      # LLM 提示词模板
 ```
+
+---
+
+## 3D 交互式模型查看器（three.js + URDF）
+
+`docs/viewer/` 是一个**纯静态**的整机 3D 查看器（不连接机械臂/灵巧手），用于离线核对 URDF、
+关节限位与抓取姿态：
+
+- `docs/viewer/index.html`：查看器页面（three.js + URDFLoader，依赖已本地 vendor，无需联网）
+- `docs/viewer/robot.urdf`：整机 URDF（Piper 7 段 + LinkerHand O6 左手 12 段；mesh 改为相对路径 `meshes/*.stl`）
+- `docs/viewer/meshes/`：精简后的网格（原 22 MB → 约 5.7 MB；用 trimesh 二次误差简化面片，保留外形）
+
+功能：轨道旋转/平移/缩放、6 个机械臂关节滑条（度）、6 个灵巧手驱动滑条（O6 值 0–255）、
+预设按钮（手：张开 `[255,70,255,255,255,255]` / 握拳 `[102,18,0,0,0,0]`；臂：初始 /
+平抓姿态 `J1~J4=[-3.87,90.29,-7.66,0.76]°、J5=-69.0°、J6=6.75°`）、相机预设、深色主题、中文界面。
+
+### 本地查看
+
+浏览器出于同源策略不能直接打开 `file://` 下的 URDF/mesh，需起静态服务（任选其一）：
+
+```bash
+# 在仓库根目录
+python3 -m http.server 8000
+# 然后浏览器访问
+#   http://localhost:8000/docs/viewer/index.html     （查看器）
+#   http://localhost:8000/docs/index.html            （文档落地页）
+```
+
+### GitHub Pages 开启方式与访问 URL
+
+仓库已带 `.nojekyll`，Pages 直接托管 `docs/` 目录即可：
+
+1. 打开仓库 **Settings → Pages**；
+2. **Build and deployment → Source** 选 `Deploy from a branch`；
+3. **Branch** 选 `main`（或默认分支）、目录选 **`/docs`**，保存；
+4. 等 1–2 分钟，访问：
+
+```
+https://cloud666666666.github.io/piper-with-linkerhand/            # 文档落地页
+https://cloud666666666.github.io/piper-with-linkerhand/viewer/index.html   # 3D 查看器
+```
+
+> 注：页面里的模型与 three.js 均为同目录相对路径，Pages 上无需任何额外配置或 CDN。

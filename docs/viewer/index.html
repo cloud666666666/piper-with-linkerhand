@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Piper + LinkerHand O6(左) 3D 查看器</title>
+<style>
+  :root { --bg:#12151a; --panel:#1b2027; --panel2:#232a33; --fg:#e8edf2; --muted:#9aa7b4; --accent:#4da3ff; --warn:#ffb454; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: system-ui, -apple-system, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+  #app { display:flex; height:100%; }
+  #cv { flex:1; min-width:0; position:relative; }
+  #cv canvas { display:block; }
+  #hint { position:absolute; left:12px; top:10px; color:var(--muted); font-size:12px; line-height:1.6;
+    background:rgba(18,21,26,.66); padding:6px 10px; border-radius:8px; pointer-events:none; }
+  #err { position:absolute; left:16px; right:16px; top:40%; text-align:center; display:none;
+    background:rgba(40,20,20,.92); border:1px solid #a34; padding:18px 22px; border-radius:10px; line-height:1.9; }
+  #err code { color:var(--warn); }
+  #side { width:340px; background:var(--panel); border-left:1px solid #000; overflow-y:auto; padding:14px 16px 40px; }
+  h1 { font-size:16px; margin:2px 0 4px; }
+  h2 { font-size:13px; margin:18px 0 8px; color:var(--accent); letter-spacing:.5px; }
+  .sub { color:var(--muted); font-size:12px; line-height:1.7; }
+  .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .row label { width:86px; font-size:12px; color:var(--muted); }
+  .row input[type=range] { flex:1; accent-color:var(--accent); }
+  .row .val { width:64px; text-align:right; font-variant-numeric:tabular-nums; font-size:12px; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 2px; }
+  button { background:var(--panel2); color:var(--fg); border:1px solid #39424d; border-radius:7px;
+    padding:5px 9px; font-size:12px; cursor:pointer; }
+  button:hover { border-color:var(--accent); color:#fff; }
+  button.pri { border-color:#2d6fb0; }
+  .card { background:var(--panel2); border:1px solid #2c343e; border-radius:9px; padding:10px 12px; margin:8px 0; }
+  .kbd { background:#000; border:1px solid #444; border-radius:4px; padding:0 4px; font-size:11px; }
+  @media (max-width: 900px) { #app { flex-direction:column; } #side { width:auto; border-left:none; border-top:1px solid #000; } #cv { height:60vh; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="cv">
+    <div id="hint">
+      左键拖拽=旋转 · 右键拖拽=平移 · 滚轮=缩放 · <span class="kbd">双击</span>=聚焦
+    </div>
+    <div id="err">
+      <div style="font-size:15px;margin-bottom:8px">模型加载失败</div>
+      <div id="errmsg" class="sub"></div>
+      <div class="sub" style="margin-top:10px">
+        如果是在浏览器里直接双击打开本页（<code>file://</code>），浏览器会因同源策略拒绝读取
+        <code>robot.urdf</code> / <code>meshes/*.stl</code>。<br />
+        请在本目录下起一个静态服务后访问：<br />
+        <code>python3 -m http.server 8000</code> →
+        <code>http://localhost:8000/index.html</code>
+      </div>
+    </div>
+  </div>
+
+  <div id="side">
+    <h1>Piper + LinkerHand O6（左）</h1>
+    <div class="sub">three.js + URDFLoader 静态查看器 · 网格已按面数精简（原 22MB → 5.7MB）</div>
+
+    <h2>预设姿态</h2>
+    <div class="btns">
+      <button class="pri" id="preset-arm-home">臂：初始（全 0）</button>
+      <button class="pri" id="preset-arm-flat">臂：平抓姿态</button>
+      <button id="preset-hand-open">手：张开 [255,70,…]</button>
+      <button id="preset-hand-fist">手：握拳 [102,18,0,0,0,0]</button>
+      <button id="preset-all-flat">平抓 + 握拳</button>
+      <button id="preset-reset">全部复位</button>
+    </div>
+
+    <h2>相机</h2>
+    <div class="btns">
+      <button id="cam-iso">等轴测</button>
+      <button id="cam-front">正视</button>
+      <button id="cam-side">侧视</button>
+      <button id="cam-top">俯视</button>
+      <button id="cam-fit">适应视图</button>
+    </div>
+
+    <h2>机械臂关节（度）</h2>
+    <div id="arm-joints"></div>
+
+    <h2>灵巧手驱动（0–255，O6 顺序）</h2>
+    <div id="hand-joints"></div>
+    <div class="card sub">
+      滑条为 SDK 驱动值：<b>大 = 伸直/远离，小 = 弯曲/靠掌心</b>，次序
+      [大拇指弯曲, 大拇指横摆, 食指, 中指, 无名指, 小指]。<br />
+      映射到 URDF：手指 MCP = (1−v/255)×限位，DIP 按比例联动；拇指 IP 随拇指弯曲联动；
+      大拇指横摆 v/255×限位。
+    </div>
+
+    <h2>说明</h2>
+    <div class="card sub">
+      · 关节名与限位直接取自 <b>robot.urdf</b>（6 臂关节 + 11 手关节 + 1 固定适配关节）。<br />
+      · 平抓姿态预设 = 本仓库联调用值：J1~J4 = [-3.87, 90.29, -7.66, 0.76]°、J5 = -69.0°、J6 = 6.75°。<br />
+      · 握拳值 [102,18,0,0,0,0] 为 SDK 官方通用示例值（O6 右手未定义握拳），待实机确认。<br />
+      · 本页为纯静态查看器，<b>不连接机械臂/灵巧手</b>，可放心在任意机器打开。
+    </div>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/STLLoader.js"></script>
+<script src="vendor/ColladaLoader.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="vendor/URDFLoader.js"></script>
+<script>
+(function () {
+  "use strict";
+  const cvEl = document.getElementById("cv");
+  const errEl = document.getElementById("err");
+  const errMsgEl = document.getElementById("errmsg");
+
+  // ---------- 场景 ----------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x12151a);
+  const camera = new THREE.PerspectiveCamera(45, cvEl.clientWidth / cvEl.clientHeight, 0.01, 50);
+  camera.position.set(0.9, 0.7, 0.9);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(cvEl.clientWidth, cvEl.clientHeight);
+  cvEl.appendChild(renderer.domElement);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+
+  scene.add(new THREE.HemisphereLight(0xdfe9ff, 0x2a2f36, 1.1));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.5);
+  dir.position.set(1.2, 2.0, 1.6);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x88aaff, 0.5);
+  dir2.position.set(-1.5, -0.8, -1.2);
+  scene.add(dir2);
+
+  const grid = new THREE.GridHelper(2, 40, 0x2b3440, 0x1e252d);
+  scene.add(grid);
+  const axes = new THREE.AxesHelper(0.15);
+  scene.add(axes);
+
+  window.addEventListener("resize", () => {
+    camera.aspect = cvEl.clientWidth / cvEl.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(cvEl.clientWidth, cvEl.clientHeight);
+  });
+
+  // ---------- 关节映射 ----------
+  const ARM_JOINTS = ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"];
+  const ARM_LABELS = ["J1 底座", "J2 大臂", "J3 小臂", "J4 腕转", "J5 腕摆", "J6 腕转(工具)"];
+  // O6 驱动顺序（与 SDK LinkerHandO6Can.JOINT_KEYS 一致）：
+  // [thumb_pitch, thumb_yaw, index, middle, ring, little]
+  const HAND_MOTORS = [
+    { label: "大拇指弯曲", joints: [["lh_thumb_cmc_pitch", 0.58, "flex"], ["lh_thumb_ip", 1.08, "flex"]] },
+    { label: "大拇指横摆", joints: [["lh_thumb_cmc_yaw", 1.30, "extend"]] },
+    { label: "食指", joints: [["lh_index_mcp_pitch", 1.60, "flex"], ["lh_index_dip", 1.43, "flex"]] },
+    { label: "中指", joints: [["lh_middle_mcp_pitch", 1.60, "flex"], ["lh_middle_dip", 1.43, "flex"]] },
+    { label: "无名指", joints: [["lh_ring_mcp_pitch", 1.60, "flex"], ["lh_ring_dip", 1.43, "flex"]] },
+    { label: "小指", joints: [["lh_pinky_mcp_pitch", 1.60, "flex"], ["lh_pinky_dip", 1.43, "flex"]] },
+  ];
+  const PRESET_HAND_OPEN = [255, 70, 255, 255, 255, 255];
+  const PRESET_HAND_FIST = [102, 18, 0, 0, 0, 0];
+  const PRESET_ARM_FLAT_DEG = [-3.87, 90.29, -7.66, 0.76, -69.0, 6.75];
+
+  let robot = null;
+  const armSliders = [];
+  const handSliders = [];
+
+  // ---------- 颜色 ----------
+  function paintRobot(robotObj) {
+    robotObj.traverse((o) => {
+      if (!o.isMesh) return;
+      // 找出该 mesh 所属 link 名（向上找 urdfNode）
+      let linkName = "";
+      let p = o;
+      while (p && !linkName) {
+        linkName = p.name || (p.urdfName || "");
+        p = p.parent;
+      }
+      const isHand = /^lh_/.test(linkName);
+      o.material = new THREE.MeshStandardMaterial({
+        color: isHand ? 0xd98b4a : 0x9aa6b2,
+        metalness: isHand ? 0.25 : 0.55,
+        roughness: isHand ? 0.55 : 0.42,
+        flatShading: false,
+      });
+      o.castShadow = false;
+      o.receiveShadow = false;
+    });
+  }
+
+  // ---------- 滑条 ----------
+  function addSlider(container, label, min, max, step, value, onChange) {
+    const row = document.createElement("div");
+    row.className = "row";
+    const lb = document.createElement("label");
+    lb.textContent = label;
+    const inp = document.createElement("input");
+    inp.type = "range";
+    inp.min = min; inp.max = max; inp.step = step; inp.value = value;
+    const val = document.createElement("span");
+    val.className = "val";
+    val.textContent = Number(value).toFixed(step < 1 ? 0 : 2);
+    inp.addEventListener("input", () => {
+      val.textContent = Number(inp.value).toFixed(step < 1 ? 0 : 2);
+      onChange(parseFloat(inp.value));
+    });
+    row.appendChild(lb); row.appendChild(inp); row.appendChild(val);
+    container.appendChild(row);
+    return { input: inp, val: val, step: step };
+  }
+
+  function buildUI() {
+    const armBox = document.getElementById("arm-joints");
+    const handBox = document.getElementById("hand-joints");
+    armBox.innerHTML = ""; handBox.innerHTML = "";
+    armSliders.length = 0; handSliders.length = 0;
+
+    ARM_JOINTS.forEach((name, i) => {
+      const j = robot.joints[name];
+      const lo = THREE.MathUtils.radToDeg(j.jointType === "fixed" ? 0 : (j.limit.lower ?? -Math.PI));
+      const hi = THREE.MathUtils.radToDeg(j.limit && j.limit.upper !== undefined ? j.limit.upper : Math.PI);
+      const s = addSlider(armBox, ARM_LABELS[i], lo.toFixed(1), hi.toFixed(1), 0.5, 0, (v) => {
+        robot.setJointValue(name, THREE.MathUtils.degToRad(v));
+      });
+      armSliders.push(s);
+    });
+
+    HAND_MOTORS.forEach((m, i) => {
+      const s = addSlider(handBox, m.label, 0, 255, 1, 255, (v) => applyHandMotor(i, v));
+      handSliders.push(s);
+    });
+  }
+
+  function applyHandMotor(index, value) {
+    const m = HAND_MOTORS[index];
+    m.joints.forEach(([jointName, span, dir]) => {
+      // 驱动值语义：大 = 伸直/远离，小 = 弯曲/靠掌心
+      const t = dir === "extend" ? value / 255 : 1 - value / 255;
+      robot.setJointValue(jointName, t * span);
+    });
+  }
+
+  function setArmDeg(degList) {
+    degList.forEach((deg, i) => {
+      robot.setJointValue(ARM_JOINTS[i], THREE.MathUtils.degToRad(deg));
+      if (armSliders[i]) {
+        armSliders[i].input.value = deg;
+        armSliders[i].val.textContent = Number(deg).toFixed(2);
+      }
+    });
+  }
+
+  function setHandValues(vals) {
+    vals.forEach((v, i) => {
+      applyHandMotor(i, v);
+      if (handSliders[i]) {
+        handSliders[i].input.value = v;
+        handSliders[i].val.textContent = String(v);
+      }
+    });
+  }
+
+  // ---------- 相机预设 ----------
+  function fitCamera(dirVec, up) {
+    const box = new THREE.Box3().setFromObject(robot);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3()).length() || 1;
+    const dist = size * 1.15;
+    const dirN = dirVec.clone().normalize();
+    camera.up.copy(up || new THREE.Vector3(0, 1, 0));
+    camera.position.copy(center.clone().add(dirN.multiplyScalar(dist)));
+    controls.target.copy(center);
+    camera.near = Math.max(0.005, dist / 200);
+    camera.far = dist * 50;
+    camera.updateProjectionMatrix();
+    controls.update();
+  }
+
+  document.getElementById("cam-iso").onclick = () => fitCamera(new THREE.Vector3(1, 0.85, 1));
+  document.getElementById("cam-front").onclick = () => fitCamera(new THREE.Vector3(0, 0.12, 1));
+  document.getElementById("cam-side").onclick = () => fitCamera(new THREE.Vector3(1, 0.12, 0));
+  document.getElementById("cam-top").onclick = () => fitCamera(new THREE.Vector3(0.001, 1, 0.001));
+  document.getElementById("cam-fit").onclick = () => fitCamera(camera.position.clone().sub(controls.target));
+
+  document.getElementById("preset-arm-home").onclick = () => setArmDeg([0, 0, 0, 0, 0, 0]);
+  document.getElementById("preset-arm-flat").onclick = () => setArmDeg(PRESET_ARM_FLAT_DEG);
+  document.getElementById("preset-hand-open").onclick = () => setHandValues(PRESET_HAND_OPEN);
+  document.getElementById("preset-hand-fist").onclick = () => setHandValues(PRESET_HAND_FIST);
+  document.getElementById("preset-all-flat").onclick = () => { setArmDeg(PRESET_ARM_FLAT_DEG); setHandValues(PRESET_HAND_FIST); };
+  document.getElementById("preset-reset").onclick = () => { setArmDeg([0, 0, 0, 0, 0, 0]); setHandValues(PRESET_HAND_OPEN); fitCamera(new THREE.Vector3(1, 0.85, 1)); };
+
+  // ---------- 加载 URDF ----------
+  const loader = new URDFLoader();
+  loader.packages = {};              // URDF 里已是相对路径 meshes/xxx.stl
+  loader.loadMeshCb = function (path, manager, done) {
+    new THREE.STLLoader(manager).load(
+      path,
+      (geom) => done(geom),
+      undefined,
+      (e) => { showError("网格加载失败：" + path, e); done(null); }
+    );
+  };
+  loader.load("robot.urdf", (r) => {
+    robot = r;
+    robot.rotation.x = -Math.PI / 2; // URDF 的 z 轴朝上 → three.js 常用 y 轴朝上
+    scene.add(robot);
+    paintRobot(robot);
+    buildUI();
+    setHandValues(PRESET_HAND_OPEN);
+    fitCamera(new THREE.Vector3(1, 0.85, 1));
+    console.log("已加载 URDF: links =", Object.keys(robot.links).length, "joints =", Object.keys(robot.joints).length);
+  }, undefined, (e) => showError("URDF 加载失败：robot.urdf", e));
+
+  function showError(title, e) {
+    errEl.style.display = "block";
+    errMsgEl.textContent = title + (e ? "（" + (e.message || e) + "）" : "");
+  }
+
+  // ---------- 渲染循环 ----------
+  (function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>roboarm 文档</title>
+<style>
+  body { margin:0; min-height:100vh; background:#12151a; color:#e8edf2;
+    font-family: system-ui, -apple-system, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+    display:flex; align-items:center; justify-content:center; }
+  .wrap { max-width:760px; padding:32px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  p { color:#9aa7b4; line-height:1.8; }
+  a.card { display:block; text-decoration:none; color:inherit; background:#1b2027; border:1px solid #2c343e;
+    border-radius:10px; padding:14px 18px; margin:14px 0; }
+  a.card:hover { border-color:#4da3ff; }
+  a.card b { color:#4da3ff; font-size:15px; }
+  a.card span { display:block; color:#9aa7b4; font-size:13px; margin-top:4px; line-height:1.7; }
+  img { max-width:100%; border-radius:10px; border:1px solid #2c343e; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>roboarm 项目文档</h1>
+  <p>Piper 机械臂 + LinkerHand O6 灵巧手的抓取工程（平掌包络抓取 / 2D 手眼标定 / YOLO 目标检测）。</p>
+
+  <a class="card" href="viewer/index.html">
+    <b>3D 交互式模型查看器 →</b>
+    <span>three.js + URDFLoader 静态查看器：整机 URDF（6 臂关节 + 11 手关节）、
+    关节滑条、平抓/握拳预设、相机预设。纯前端、不连接硬件。</span>
+  </a>
+
+  <a class="card" href="../README.md">
+    <b>项目说明（README）→</b>
+    <span>安装、配置与各场景脚本用法。</span>
+  </a>
+
+  <img src="image1.png" alt="项目示意图" />
+</div>
+</body>
+</html>
