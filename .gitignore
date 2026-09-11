@@ -29,6 +29,7 @@ object_detect/data.yaml
 *.jpg
 *.mp3
 *.mp4
+!docs/media/real_grasp_demo.mp4
 *.wav
 *.zip
 

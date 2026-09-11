@@ -348,7 +348,15 @@ uv run python -c "import mujoco; m=mujoco.MjModel.from_xml_path('$PWD/sim/piper_
 
 ---
 
-## 仿真演示（MuJoCo 离屏渲染）
+## 实机演示(真机抓取)
+
+Piper + LinkerHand O6 真机平掌包络抓取全程(约 29 秒):搜索定位 → 接近 → 垂直下抓 → 握拳 → 抬起。
+
+[▶ 观看实机演示视频(MP4,4.3MB)](https://cloud666666666.github.io/piper-with-linkerhand/media/real_grasp_demo.mp4)
+
+---
+
+## 仿真演示(MuJoCo 离屏渲染)
 
 以下图片/动画由本仓库的 MuJoCo 场景离屏渲染生成（`MUJOCO_GL=egl`，无需显示器）：
 
