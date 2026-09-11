@@ -25,6 +25,9 @@ dependencies = [
     "pyorbbecsdk2>=2.0.18",
     "python-can[gs-usb]>=4.6.1",
     "pyusb>=1.3.1",
+    # 直接依赖：utils/config_getter.py 与灵巧手 SDK（读取 setting.yaml/姿态表）都 import yaml；
+    # 之前只靠 ultralytics/draccus 等传递带入，这里显式声明。
+    "pyyaml>=6.0",
     "requests>=2.33.1",
     "serial>=0.0.97",
     "socksio>=1.0.0",
