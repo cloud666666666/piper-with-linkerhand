@@ -1,0 +1,153 @@
+diff --git a/LinkerHand/core/can/linker_hand_g20_can.py b/LinkerHand/core/can/linker_hand_g20_can.py
+index 5c3f8f4..c2298eb 100644
+--- a/LinkerHand/core/can/linker_hand_g20_can.py
++++ b/LinkerHand/core/can/linker_hand_g20_can.py
+@@ -4,9 +4,9 @@ import time, sys, os
+ import threading
+ import numpy as np
+ from enum import Enum
+-from utils.open_can import OpenCan
++from LinkerHand.utils.open_can import OpenCan
+ from can.exceptions import CanError
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.color_msg import ColorMsg
+ current_dir = os.path.dirname(os.path.abspath(__file__))
+ target_dir = os.path.abspath(os.path.join(current_dir, ".."))
+ sys.path.append(target_dir)
+diff --git a/LinkerHand/core/can/linker_hand_l10_can.py b/LinkerHand/core/can/linker_hand_l10_can.py
+index f445a58..9045496 100644
+--- a/LinkerHand/core/can/linker_hand_l10_can.py
++++ b/LinkerHand/core/can/linker_hand_l10_can.py
+@@ -6,8 +6,8 @@ import threading
+ import numpy as np
+ #from tabulate import tabulate
+ from enum import Enum
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ 
+ 
+diff --git a/LinkerHand/core/can/linker_hand_l20_can.py b/LinkerHand/core/can/linker_hand_l20_can.py
+index 5b5f36e..a598bed 100644
+--- a/LinkerHand/core/can/linker_hand_l20_can.py
++++ b/LinkerHand/core/can/linker_hand_l20_can.py
+@@ -4,8 +4,8 @@ import can
+ import threading
+ from enum import Enum
+ import numpy as np
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ 
+ class FrameProperty(Enum):
+diff --git a/LinkerHand/core/can/linker_hand_l21_can.py b/LinkerHand/core/can/linker_hand_l21_can.py
+index 66ba97a..beb30d4 100644
+--- a/LinkerHand/core/can/linker_hand_l21_can.py
++++ b/LinkerHand/core/can/linker_hand_l21_can.py
+@@ -4,8 +4,8 @@ import time, sys, os
+ import threading
+ import numpy as np
+ from enum import Enum
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ current_dir = os.path.dirname(os.path.abspath(__file__))
+ target_dir = os.path.abspath(os.path.join(current_dir, ".."))
+diff --git a/LinkerHand/core/can/linker_hand_l24_can.py b/LinkerHand/core/can/linker_hand_l24_can.py
+index d5192f6..c867aaf 100644
+--- a/LinkerHand/core/can/linker_hand_l24_can.py
++++ b/LinkerHand/core/can/linker_hand_l24_can.py
+@@ -7,7 +7,7 @@ from enum import Enum
+ current_dir = os.path.dirname(os.path.abspath(__file__))
+ target_dir = os.path.abspath(os.path.join(current_dir, ".."))
+ sys.path.append(target_dir)
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.color_msg import ColorMsg
+ 
+ class FrameProperty(Enum):
+     INVALID_FRAME_PROPERTY = 0x00  # 无效的can帧属性 | 无返回
+diff --git a/LinkerHand/core/can/linker_hand_l25_can.py b/LinkerHand/core/can/linker_hand_l25_can.py
+index 97f91b4..efad718 100644
+--- a/LinkerHand/core/can/linker_hand_l25_can.py
++++ b/LinkerHand/core/can/linker_hand_l25_can.py
+@@ -4,8 +4,8 @@ import time,sys,os
+ import threading
+ import numpy as np
+ from enum import Enum
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ current_dir = os.path.dirname(os.path.abspath(__file__))
+ target_dir = os.path.abspath(os.path.join(current_dir, ".."))
+diff --git a/LinkerHand/core/can/linker_hand_l6_can.py b/LinkerHand/core/can/linker_hand_l6_can.py
+index d5cca5d..39b2d4c 100644
+--- a/LinkerHand/core/can/linker_hand_l6_can.py
++++ b/LinkerHand/core/can/linker_hand_l6_can.py
+@@ -2,8 +2,8 @@ import can
+ import time, sys
+ import threading
+ import numpy as np
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ 
+ 
+diff --git a/LinkerHand/core/can/linker_hand_l7_can.py b/LinkerHand/core/can/linker_hand_l7_can.py
+index 446d24a..66eb583 100644
+--- a/LinkerHand/core/can/linker_hand_l7_can.py
++++ b/LinkerHand/core/can/linker_hand_l7_can.py
+@@ -2,8 +2,8 @@ import can
+ import time, sys
+ import threading
+ import numpy as np
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ 
+ 
+diff --git a/LinkerHand/core/can/linker_hand_o6_can.py b/LinkerHand/core/can/linker_hand_o6_can.py
+index 5c95ab8..105ab4c 100644
+--- a/LinkerHand/core/can/linker_hand_o6_can.py
++++ b/LinkerHand/core/can/linker_hand_o6_can.py
+@@ -2,8 +2,8 @@ import can
+ import time, sys
+ import threading
+ import numpy as np
+-from utils.open_can import OpenCan
+-from utils.color_msg import ColorMsg
++from LinkerHand.utils.open_can import OpenCan
++from LinkerHand.utils.color_msg import ColorMsg
+ from can.exceptions import CanError
+ 
+ 
+diff --git a/LinkerHand/linker_hand_api.py b/LinkerHand/linker_hand_api.py
+index 631a7c9..fbc7b54 100644
+--- a/LinkerHand/linker_hand_api.py
++++ b/LinkerHand/linker_hand_api.py
+@@ -2,10 +2,10 @@
+ # -*- coding: utf-8 -*-
+ import sys, os, time,threading
+ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+-from utils.mapping import *
+-from utils.color_msg import ColorMsg
+-from utils.load_write_yaml import LoadWriteYaml
+-from utils.open_can import OpenCan
++from LinkerHand.utils.mapping import *
++from LinkerHand.utils.color_msg import ColorMsg
++from LinkerHand.utils.load_write_yaml import LoadWriteYaml
++from LinkerHand.utils.open_can import OpenCan
+ 
+ class LinkerHandApi:
+     def __init__(self, hand_type="left", hand_joint="L10", modbus = "None",can="can0"):  # Ubuntu:can0   win:PCAN_USBBUS1

@@ -251,11 +251,23 @@ git config --global url."https://v4.gh-proxy.org/https://github.com/".insteadOf 
 > ⚠️ SDK **没有** `setup.py` / `pyproject.toml`，所以 **不能** `pip install -e third_party/linkerhand-python-sdk`
 > （会报“找不到构建配置”）——只能用上面的 `linker_hand_sdk_path` 或 `PYTHONPATH` 方式。
 >
-> 🔧 **导入补丁说明**：上游 SDK 无需任何补丁即可使用（本仓库封装把 SDK 根目录入 `sys.path`，
-> SDK 的 `linker_hand_api.py` 自身又会把 `LinkerHand/` 目录入 `sys.path`，两处合起来，
-> 上游的 `from utils...` / `from core...` 与包式导入 `LinkerHand.*` 都能解析）。
-> 开发机上那份 `/home/czn/linkerhand-python-sdk` 里的 `LinkerHand.*` 绝对导入改动是**未提交的工作区改动**，
-> 属等价重构；submodule 用的是干净的上游提交，实测可直接导入（含 O6 的 Modbus 驱动）。
+> 🔧 **重要：上游 SDK 与本仓库有 `utils` 包名冲突，必须打补丁**。上游 SDK 内部用裸包名导入
+> （`from utils.mapping import *`、`from core.rs485...`），而本仓库根目录**也有自己的 `utils/` 包**；
+> 从仓库根运行脚本时（如 `python3 linker_hand_fist.py`）`utils` 会先解析到本仓库的 `utils`，
+> 实测报错：`ModuleNotFoundError: No module named 'utils.mapping'`（把 SDK 根目录放在 `sys.path` 最前也无效，
+> 因为冲突的是顶级名 `utils` 本身）。解决办法是把 SDK 内部的 `utils.*` / `core.*` 改成
+> `LinkerHand.utils.*` / `LinkerHand.core.*`（等价重构、不改行为）：仓库已附带补丁文件，
+> **一行应用**（只改 submodule 的工作区，不产生新提交）：
+>
+> ```bash
+> git -C third_party/linkerhand-python-sdk apply ../linkerhand-imports.patch
+> ```
+>
+> 该补丁针对当前 submodule 提交 `0cc0585` 生成；上游更新后可能需重做。
+> 更省事、可复现的做法：把补丁提交到你自己的 **fork**，再把 `.gitmodules` 的 URL 与 submodule
+> 指纹指向该 fork（推荐长期方案）。
+> （开发机上的 `/home/czn/linkerhand-python-sdk` 已打好同一补丁，`config.yaml` 的
+> `linker_hand_sdk_path` 指向它即可直接工作。）
 
 **依赖**：灵巧手 Modbus RTU 链路需要 **`pymodbus==3.5.1`**（SDK 的 `requirements.txt` 即固定此版本；
 它会带上 `pyserial`）与 **PyYAML**（读 SDK 的 `LinkerHand/config/setting.yaml`）。已在
@@ -279,9 +291,12 @@ dmesg | tail -20             # 插入 USB-485 转接器后看内核识别到哪�
 - 从站地址由 `linker_hand_type` 决定：**右手 0x27(39)、左手 0x28(40)**；
 - 权限：`sudo chmod 777 /dev/ttyUSB0` 或把用户加入 `dialout` 组（SDK 文档写 777）。
 
-**验证（仅显式运行脚本时才发帧）**：
+**验证（仅显式运行脚本时才发帧；请先应用上面的导入补丁，否则会报 `No module named 'utils.mapping'`）**：
 
 ```bash
+# 先确认补丁已应用（无输出即已应用）
+git -C third_party/linkerhand-python-sdk diff --quiet && echo "尚未打补丁" || echo "补丁已应用"
+
 uv run python linker_hand_open.py --hold 2     # 张开，保持 2 秒
 uv run python linker_hand_fist.py --hold 2     # 握拳，保持 2 秒
 # 两者都会打印：下发姿态值 + 来源（config 覆盖还是内置默认）+ 通信链路（Modbus/CAN），
