@@ -3,6 +3,12 @@
 Piper 机械臂 + LinkerHand O6 灵巧手的抓取工程：**平掌包络抓取**（核心）、2D 手眼标定、
 YOLO 目标检测，以及配套的 **MuJoCo 仿真**与静态 3D 模型查看器。
 
+> ### 🔗 [在线 3D 查看器 —— 点这里直接在浏览器打开](https://cloud666666666.github.io/piper-with-linkerhand/viewer/index.html)
+>
+> [![Piper + LinkerHand O6 3D 查看器](docs/media/sim_iso.png)](https://cloud666666666.github.io/piper-with-linkerhand/viewer/index.html)
+>
+> 可旋转/缩放/平移，拖 **6 个机械臂关节 + 6 个灵巧手驱动**滑条，一键切换「平抓姿态」「张开 / 握拳」等预设与相机视角。模型由 MuJoCo 场景 `scene.xml` 生成（法兰 → 连接件 → 灵巧手，无夹爪），与仿真逐点一致。
+
 - 抓取：`classification/catch_with_linker_hand_flat.py`（灵巧手平掌包络，默认单次抓取）
 - 标定：`arm/calibrate_arm_hand.py`（平抓 2D，掌心对准）、`arm/calibrate_handeye_2d.py`（垂直 2D）、`arm/calibrate_handeye_s10.py`（眼在手上 3D）
 - 仿真：`sim/piper_linker/`（MuJoCo 场景 `scene.xml`，臂 + 灵巧手 + 连接件）
