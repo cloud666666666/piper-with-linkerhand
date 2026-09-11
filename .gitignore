@@ -4,6 +4,8 @@ __pycache__/
 calibration/
 dataset/
 runs/
+!object_detect/runs/
+!object_detect/runs/best.pt
 yolov11/
 temfile/
 temp/

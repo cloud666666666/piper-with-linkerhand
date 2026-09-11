@@ -25,7 +25,7 @@ get_arm_angles_retry_times: 3
 
 # 以项目根目录为基准
 classification_YOLO_model_path:
-  - object_detect/runs/best.pt   # 需自行训练/获取（见 README「YOLO 模型准备」）
+  - object_detect/runs/best.pt   # 仓库已附带该权重（5.4MB），可直接用
 
 # 默认YOLO识别置信度阈值
 default_conf_thres: 0.5

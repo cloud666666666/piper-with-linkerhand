@@ -259,13 +259,18 @@ cp config.yaml.example config.yaml
 
 ### YOLO 模型准备
 
-`classification_YOLO_model_path` 指向 YOLO 权重（本仓库不附带 `object_detect/runs/`）。
-自备模型放到该路径即可，例如：
+**仓库已附带训练好的检测权重** `object_detect/runs/best.pt`（约 5.4MB），
+`config.yaml.example` 里的 `classification_YOLO_model_path` 已指向它，开箱即用：
 
 ```bash
-ls object_detect/runs/     # 放 best.pt（或任意自训练权重）
-# 训练不在本仓库范围内，可用 ultralytics 官方流程在自己的数据上训练
+ls -lh object_detect/runs/best.pt    # 已随仓库提供，无需自己训练
 ```
+
+如需换成自己的模型：把权重放到任意路径并改 `classification_YOLO_model_path` 即可
+（支持多模型列表，检测时会合并结果取置信度最高者）。
+
+> 训练流程（数据集准备 / 标注转换 / `train.py`）**未包含在本仓库**；若要自训练，
+> 用 ultralytics 官方流程在自己的数据上训练后替换该权重文件。
 
 ---
 

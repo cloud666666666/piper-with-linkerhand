@@ -139,7 +139,7 @@ def main():
     parser.add_argument(
         "--host",
         type=str,
-        default="192.168.0.5",
+        default="127.0.0.1",
         help="Host for the model server",
     )
     parser.add_argument(
