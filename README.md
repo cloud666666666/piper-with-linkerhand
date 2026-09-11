@@ -337,6 +337,50 @@ uv run python -c "import mujoco; m=mujoco.MjModel.from_xml_path('$PWD/sim/piper_
 
 ---
 
+## 仿真演示（MuJoCo 离屏渲染）
+
+以下图片/动画由本仓库的 MuJoCo 场景离屏渲染生成（`MUJOCO_GL=egl`，无需显示器）：
+
+**整机等轴测**
+
+![整机等轴测](docs/media/sim_iso.png)
+
+**手部特写（张开）**
+
+![手部特写](docs/media/sim_hand.png)
+
+**平抓姿态特写**（臂 J1~J4=[-3.87, 90.29, -7.66, 0.76]°、J5=-69.0°、J6=6.75°，手张开）
+
+![平抓姿态](docs/media/sim_flat_grasp.png)
+
+**手的张开 → 握拳 → 张开**
+
+![张开握拳动画](docs/media/hand_open_fist.gif)
+
+**抓取序列**：home → 平抓姿态 → 垂直下降（手掌 IK 下移 4cm）→ 握拳 → 抬起（末尾停两帧）
+
+![抓取序列](docs/media/grasp_sequence.gif)
+
+本地跑仿真：
+
+```bash
+cd sim/piper_linker
+python main.py                       # 本机 MuJoCo viewer（需要显示器/GL）
+MUJOCO_GL=egl python server.py       # 无显示器：起 Web 查看器，浏览器打开提示的 URL
+```
+
+重新生成上面的演示素材（分辨率/帧率/输出目录都可参数化）：
+
+```bash
+cd sim/piper_linker
+MUJOCO_GL=egl python tools/render_demo.py     --width 800 --height 600 --fps 20 --gif-palette 32     # 输出到 ../../docs/media/
+```
+
+> 说明：手部驱动值与 `server.py` 的 GESTURES 一致（张开=全 0、握拳=[1.3,0.58,1.6,1.6,1.6,1.6] 弧度）；
+> 垂直下降/抬起用 6 个臂关节的阻尼最小二乘 IK 平移手掌；GIF 用 32 色量化以控制体积。
+
+---
+
 ## 3D 交互式模型查看器（three.js + URDF）
 
 `docs/viewer/` 是一个**纯静态**的整机 3D 查看器（不连接机械臂/灵巧手），用于离线核对 URDF、
