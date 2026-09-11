@@ -16,6 +16,7 @@
       - [4.2 激活 CAN 接口](#42-激活-can-接口)
       - [4.3 验证 CAN 状态](#43-验证-can-状态)
     - [5. 连通性验证](#5-连通性验证)
+    - [6. 灵巧手（LinkerHand O6）环境准备](#6-灵巧手linkerhand-o6环境准备)
   - [配置说明](#配置说明)
     - [config.yaml 关键配置项](#configyaml-关键配置项)
       - [机械臂连接](#机械臂连接)
@@ -60,6 +61,7 @@
     - [相机无画面](#相机无画面)
     - [报错「没有手眼标定数据，无法转换图像坐标」](#报错没有手眼标定数据无法转换图像坐标)
   - [项目结构](#项目结构)
+  - [3D 交互式模型查看器（three.js + URDF）](#3d-交互式模型查看器threejs--urdf)
 
 ---
 
@@ -134,6 +136,23 @@ uv run python -c "from ultralytics import YOLO; print('ultralytics OK')"
 ```
 
 > **说明**：`uv sync` 会根据 `pyproject.toml` 和 `uv.lock` 自动创建 `.venv` 并安装所有依赖（Python 3.10）。
+>
+> ⚠️ **两条平台路径（本仓库快照不含 `wheels/`、`lerobot/`，直接 `uv sync` 会失败）**：
+>
+> - **Jetson / aarch64（JetPack 6.1 + CUDA 12.6）**：`pyproject.toml` 通过
+>   `[tool.uv.sources]` 指向 NVIDIA 官方 torch 轮子
+>   `wheels/torch-2.5.0a0+872d972e41.nv24.8-cp310-cp310-linux_aarch64.whl` 与本机源码构建的
+>   `wheels/torchvision-0.20.0-cp310-cp310-linux_aarch64.whl`（**构建步骤见 pyproject.toml 内注释**），
+>   另有 `stubs/torchcodec`。这些文件体积大、未随仓库分发，需自行准备并放到对应路径，
+>   `uv sync` 才能解析；缺 `lerobot/`（`[tool.uv.sources]` 里的本地源，克隆方式见上一步）同样会报
+>   `error: Distribution not found at: file:///…/lerobot`。
+> - **x86_64 + PyPI torch（开发机更省事）**：把 `[tool.uv.sources]` 里的 `torch`/`torchvision`/`torchcodec`
+>   三个本地路径项与 `[tool.uv]` 的 `constraint-dependencies`/`environments` 一并去掉（那些只服务 Jetson），
+>   再 `uv sync`，torch 直接从 PyPI 解析。
+>
+> 只想先把机械臂/灵巧手跑起来、不想折腾 torch：可以只补装少量运行时包，例如
+> `uv pip install pymodbus==3.5.1`（灵巧手 Modbus）与 `uv pip install piper-sdk kinpy scipy`，
+> 不需要 `uv sync` 全量安装。
 
 ### 4. CAN 总线配置（Piper 机械臂）
 
@@ -205,6 +224,73 @@ uv run python arm/piper_ctrl_by_sdk.py
 机械臂应能进行使能并执行测试运动。
 
 ---
+
+### 6. 灵巧手（LinkerHand O6）环境准备
+
+灵巧手 SDK 以 **git submodule** 形式随仓库（`third_party/linkerhand-python-sdk`），
+上游：<https://github.com/linker-bot/linkerhand-python-sdk>，锁定的提交为
+`0cc0585b97214b2cc4a9a5afcc84aee9f414e0e8`（2026-08-11，SDK 自带版本号 3.1.1，支持 O6/L6 的 RS485 模式）。
+
+```bash
+# 克隆时一并拉取（仓库里还有 chess/MyChess、sim/isaac-sim 两个 submodule）
+git clone --recurse-submodules <repo-url>
+# 已经克隆过：初始化全部或只初始化 SDK
+git submodule update --init --recursive
+git submodule update --init third_party/linkerhand-python-sdk
+
+# 本机无法直连 GitHub 时，让 git 走代理（一次性配置）
+git config --global url."https://v4.gh-proxy.org/https://github.com/".insteadOf "https://github.com/"
+```
+
+**让 Python 找到 SDK（二选一）**：
+
+1. **推荐**：`config.yaml` 里设置 `linker_hand_sdk_path: <仓库>/third_party/linkerhand-python-sdk`，
+   `arm/linker_hand.py` 会把该目录插入 `sys.path` 后再 `from LinkerHand.linker_hand_api import LinkerHandApi`；
+2. 或设环境变量：`export PYTHONPATH=$PWD/third_party/linkerhand-python-sdk:$PYTHONPATH`。
+
+> ⚠️ SDK **没有** `setup.py` / `pyproject.toml`，所以 **不能** `pip install -e third_party/linkerhand-python-sdk`
+> （会报“找不到构建配置”）——只能用上面的 `linker_hand_sdk_path` 或 `PYTHONPATH` 方式。
+>
+> 🔧 **导入补丁说明**：上游 SDK 无需任何补丁即可使用（本仓库封装把 SDK 根目录入 `sys.path`，
+> SDK 的 `linker_hand_api.py` 自身又会把 `LinkerHand/` 目录入 `sys.path`，两处合起来，
+> 上游的 `from utils...` / `from core...` 与包式导入 `LinkerHand.*` 都能解析）。
+> 开发机上那份 `/home/czn/linkerhand-python-sdk` 里的 `LinkerHand.*` 绝对导入改动是**未提交的工作区改动**，
+> 属等价重构；submodule 用的是干净的上游提交，实测可直接导入（含 O6 的 Modbus 驱动）。
+
+**依赖**：灵巧手 Modbus RTU 链路需要 **`pymodbus==3.5.1`**（SDK 的 `requirements.txt` 即固定此版本；
+它会带上 `pyserial`）与 **PyYAML**（读 SDK 的 `LinkerHand/config/setting.yaml`）。已在
+`pyproject.toml` 的 `dependencies` 中声明；CAN 模式额外需要 `python-can`（本项目已声明），Modbus 模式不需要。
+
+> `uv.lock` **未随本次改动重新生成**：本仓库快照里 `lerobot/`、`wheels/` 等本地源不存在，
+> `uv lock` 会在 `lerobot` 处直接报 `error: Distribution not found at: file:///…/lerobot`。
+> 因此需要时请手工装：`uv pip install pymodbus==3.5.1`（或 `pip install pymodbus==3.5.1`）。
+
+**Modbus（RS485）串口准备**：
+
+```bash
+ls /dev/serial/by-id/        # 推荐：by-id 名稳定，填这个
+ls /dev/ttyUSB*              # 简易：多个转接器时序号可能漂移
+dmesg | tail -20             # 插入 USB-485 转接器后看内核识别到哪个口
+```
+
+- `config.yaml` 的 `linker_hand_modbus` 填真实设备名（SDK 的 `config/setting.yaml` 里
+  `RIGHT_HAND.MODBUS` 目前也是 `/dev/ttyUSB0`，可互相对照）；
+- **波特率 115200 / 8N1 由 SDK 固定**（`linker_hand_api.py` 构造时硬编码，无配置项）；
+- 从站地址由 `linker_hand_type` 决定：**右手 0x27(39)、左手 0x28(40)**；
+- 权限：`sudo chmod 777 /dev/ttyUSB0` 或把用户加入 `dialout` 组（SDK 文档写 777）。
+
+**验证（仅显式运行脚本时才发帧）**：
+
+```bash
+uv run python linker_hand_open.py --hold 2     # 张开，保持 2 秒
+uv run python linker_hand_fist.py --hold 2     # 握拳，保持 2 秒
+# 两者都会打印：下发姿态值 + 来源（config 覆盖还是内置默认）+ 通信链路（Modbus/CAN），
+# 并在保持后回读关节位置，便于确认是否到位。
+```
+
+> 提醒：O6 **右手握拳值**官方 SDK 未定义（`O6_positions.yaml` 的 RIGHT_HAND 只有「张开」），
+> 内置默认取官方通用示例 `[102,18,0,0,0,0]`，**待实机验证**；不满意时用 config
+> `linker_hand_fist_pose` 覆盖（优先微调第 1、2 个分量），无需改代码。
 
 ## 配置说明
 
