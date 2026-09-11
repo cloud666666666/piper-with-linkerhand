@@ -1,0 +1,383 @@
+<!-- ============================================================
+  Piper 标准版 6 轴臂 + 灵巧手连接件 + 左 Linker Hand O6-CAN
+  数据来源:
+    · 臂部结构      ← AgileX 官方 piper.xml (agx_arm_sim)
+    · 连接件        ← 灵巧手连接件.STEP (用户提供的 CAD)
+    · 手部          ← linkerhand-urdf/O6/left/linkerhand_o6_left.urdf
+  手部通过 Ø39mm 同轴连接件(厚 17.5mm)安装在 link6 法兰上。
+  修改/溯源记录见同目录 ../PROVENANCE.md
+============================================================ -->
+<mujoco model="piper_description">
+  <!-- 网格目录 = 本文件所在目录 (piper/) -->
+  <compiler angle="radian" meshdir="."/>
+
+  <!-- 官方参数: implicitfast 积分器(对位置伺服更稳) + 椭圆摩擦锥(配合等式约束更稳) -->
+  <option integrator="implicitfast" cone="elliptic" impratio="10"/>
+
+  <!-- 默认类:
+       piper    臂部关节基类 (摩擦/转子惯量/位置执行器力限)
+       finger   (原两指夹爪遗留, 已无用, 保留不影响)
+       visual   外观网格: group2 可见, 不参与碰撞, 密度0
+       collision 碰撞体: group3 默认隐藏, 胶囊代理 (臂部官方设计;
+                 手部需显式加 type="mesh" 才能用网格碰撞, 否则退化成胶囊) -->
+  <default>
+    <default class="piper">
+      <joint frictionloss="0.3" armature="0.005"/>
+      <position inheritrange="1" forcerange="-100 100"/>
+      <default class="finger">
+        <joint frictionloss="0" type="slide"/>
+        <position forcerange="-10 10"/>
+      </default>
+      <default class="visual">
+        <geom group="2" type="mesh" contype="0" conaffinity="0" density="0"/>
+      </default>
+      <default class="collision">
+        <geom group="3" type="capsule"/>
+      </default>
+    </default>
+  </default>
+
+  <!-- 材质: 全部来自官方 piper.xml, 未修改 -->
+  <!-- 网格: link2_*.obj ~ link5_*.obj 为官方壳体碎块(多块拼一个连杆);
+       base_link.stl ~ link6.stl 为碰撞/骨架网格; adapter.stl 为连接件(由 STEP 转换) -->
+  <asset>
+    <material name="gray_mat" rgba="0.59 0.59 0.59 1"/>
+    <material name="light_gray_mat" rgba="0.98 0.98 0.98 1"/>
+    <material name="light_medium_gray_mat" rgba="0.85 0.85 0.85 1"/>
+    <material name="dark_gray_mat" rgba="0.086 0.086 0.086 1"/>
+    <material name="darker_gray_mat" rgba="0.14 0.14 0.14 1"/>
+    <material name="white_mat" rgba="1 1 1 1"/>
+    <material name="red_mat" rgba="0.82 0.15 0.15 1"/>
+    <material name="black_mat" rgba="0 0 0 1"/>
+    <material name="light_blue" rgba="0.79 0.82 0.93 1"/>
+
+    <mesh file="link2_0.obj"/>
+    <mesh file="link2_1.obj"/>
+    <mesh file="link2_2.obj"/>
+    <mesh file="link2_3.obj"/>
+    <mesh file="link2_4.obj"/>
+    <mesh file="link2_5.obj"/>
+    <mesh file="link2_6.obj"/>
+    <mesh file="link2_7.obj"/>
+    <mesh file="link2_8.obj"/>
+    <mesh file="link2_9.obj"/>
+    <mesh file="link2_10.obj"/>
+    <mesh file="link2_11.obj"/>
+    <mesh file="link2_12.obj"/>
+    <mesh file="link2_13.obj"/>
+    <mesh file="link2_14.obj"/>
+    <mesh file="link2_15.obj"/>
+    <mesh file="link2_16.obj"/>
+    <mesh file="link2_17.obj"/>
+    <mesh file="link2_18.obj"/>
+    <mesh file="link2_19.obj"/>
+    <mesh file="link2_20.obj"/>
+    <mesh file="link2_21.obj"/>
+    <mesh file="link2_22.obj"/>
+    <mesh file="link2_23.obj"/>
+    <mesh file="link2_24.obj"/>
+    <mesh file="link2_25.obj"/>
+    <mesh file="link2_26.obj"/>
+    <mesh file="link2_27.obj"/>
+    <mesh file="link2_28.obj"/>
+    <mesh file="link2_29.obj"/>
+    <mesh file="link2_30.obj"/>
+    <mesh file="link2_31.obj"/>
+    <mesh file="link3_0.obj"/>
+    <mesh file="link3_1.obj"/>
+    <mesh file="link3_2.obj"/>
+    <mesh file="link3_3.obj"/>
+    <mesh file="link3_4.obj"/>
+    <mesh file="link3_5.obj"/>
+    <mesh file="link3_7.obj"/>
+    <mesh file="link3_8.obj"/>
+    <mesh file="link3_9.obj"/>
+    <mesh file="link3_10.obj"/>
+    <mesh file="link3_11.obj"/>
+    <mesh file="link3_12.obj"/>
+    <mesh file="link3_13.obj"/>
+    <mesh file="link3_14.obj"/>
+    <mesh file="link3_15.obj"/>
+    <mesh file="link3_16.obj"/>
+    <mesh file="link3_17.obj"/>
+    <mesh file="link3_18.obj"/>
+    <mesh file="link3_19.obj"/>
+    <mesh file="link3_20.obj"/>
+    <mesh file="link3_21.obj"/>
+    <mesh file="link3_22.obj"/>
+    <mesh file="link3_23.obj"/>
+    <mesh file="link3_24.obj"/>
+    <mesh file="link3_25.obj"/>
+    <mesh file="link3_26.obj"/>
+    <mesh file="link3_27.obj"/>
+    <mesh file="link3_28.obj"/>
+    <mesh file="link4_2.obj"/>
+    <mesh file="link4_3.obj"/>
+    <mesh file="link4_4.obj"/>
+    <mesh file="link4_5.obj"/>
+    <mesh file="link4_6.obj"/>
+    <mesh file="link5_2.obj"/>
+    <mesh file="link5_3.obj"/>
+    <mesh file="link5_4.obj"/>
+    <mesh file="link5_5.obj"/>
+    <mesh file="link5_6.obj"/>
+    <mesh file="link5_7.obj"/>
+    <mesh file="link5_8.obj"/>
+    <mesh name="base_link" file="base_link.stl"/>
+    <mesh name="link1" file="link1.stl"/>
+    <mesh name="link2" file="link2.stl"/>
+    <mesh name="link2_gray" file="link2_gray.stl"/>
+    <mesh name="link3" file="link3.stl"/>
+    <mesh name="link4" file="link4.stl"/>
+    <mesh name="link5" file="link5.stl"/>
+    <mesh file="link6.stl"/>
+    <mesh file="link7.stl"/>
+    <mesh file="link8.stl"/>
+    <mesh name="adapter" file="adapter.stl"/>
+    <!-- link6 裁剪版: 仅保留法兰盘 (原版含 40mm 前伸凸台, 真机已被灵巧手替换) -->
+    <mesh name="link6_trimmed" file="link6_trimmed.stl"/>
+  </asset>
+
+  <worldbody>
+    <!-- 聚光灯: 跟随手基座 (原版指向已删除的 link8 夹爪) -->
+    <light name="spotlight" mode="targetbodycom" target="lh_hand_base_link" pos="0 0 1"/>
+    <!-- ═══ Piper 臂部 (6 连杆, 数据未改) ═══ -->
+    <body name="base_link" childclass="piper" gravcomp="1">
+      <inertial pos="-0.00979275 1.82906e-06 0.04101" quat="0.692988 -0.137524 -0.137826 0.69416" mass="0.162549"
+        diaginertia="0.000269445 0.000227478 0.000221437"/>
+      <geom class="visual" density="0" mesh="base_link" material="gray_mat"/>
+      <geom class="collision" mesh="base_link"/>
+        <!-- link1 肩部: joint1 底座回转 ±150° (±2.618rad) -->
+      <body name="link1" pos="0 0 0.123" quat="0.707105 0 0 -0.707108" gravcomp="1">
+        <inertial pos="0.00131676 0.000310289 -0.00922875" quat="0.557105 0.432155 0.377373 0.600388" mass="0.097868"
+          diaginertia="9.25942e-05 8.3083e-05 7.69469e-05"/>
+        <joint name="joint1" axis="0 0 1" range="-2.618 2.618"/>
+        <geom class="visual" density="0" mesh="link1" material="gray_mat"/>
+        <geom class="collision" mesh="link1"/>
+          <!-- link2 大臂: joint2 肩部俯仰 0~180° -->
+        <body name="link2" quat="0.499998 0.5 -0.500002 -0.5" gravcomp="1">
+          <inertial pos="0.148794 -0.00242027 0.00175155" quat="-0.0249063 0.70684 0.00803509 0.706889" mass="0.290889"
+            diaginertia="0.00177549 0.00173142 0.00014552"/>
+          <joint name="joint2" axis="0 0 1" range="0 3.14"/>
+          <geom mesh="link2_0" material="gray_mat" class="visual"/>
+          <geom mesh="link2_1" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_2" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_3" material="dark_gray_mat" class="visual"/>
+          <geom mesh="link2_4" material="dark_gray_mat" class="visual"/>
+          <geom mesh="link2_5" material="red_mat" class="visual"/>
+          <geom mesh="link2_6" material="dark_gray_mat" class="visual"/>
+          <geom mesh="link2_7" material="gray_mat" class="visual"/>
+          <geom mesh="link2_8" material="red_mat" class="visual"/>
+          <geom mesh="link2_9" material="red_mat" class="visual"/>
+          <geom mesh="link2_10" material="gray_mat" class="visual"/>
+          <geom mesh="link2_11" material="red_mat" class="visual"/>
+          <geom mesh="link2_12" material="red_mat" class="visual"/>
+          <geom mesh="link2_13" material="red_mat" class="visual"/>
+          <geom mesh="link2_14" material="red_mat" class="visual"/>
+          <geom mesh="link2_15" material="red_mat" class="visual"/>
+          <geom mesh="link2_16" material="red_mat" class="visual"/>
+          <geom mesh="link2_17" material="red_mat" class="visual"/>
+          <geom mesh="link2_18" material="red_mat" class="visual"/>
+          <geom mesh="link2_19" material="red_mat" class="visual"/>
+          <geom mesh="link2_20" material="red_mat" class="visual"/>
+          <geom mesh="link2_21" material="gray_mat" class="visual"/>
+          <geom mesh="link2_22" material="red_mat" class="visual"/>
+          <geom mesh="link2_23" material="red_mat" class="visual"/>
+          <geom mesh="link2_24" material="red_mat" class="visual"/>
+          <geom mesh="link2_25" material="dark_gray_mat" class="visual"/>
+          <geom mesh="link2_26" material="red_mat" class="visual"/>
+          <geom mesh="link2_27" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_28" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_29" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_30" material="darker_gray_mat" class="visual"/>
+          <geom mesh="link2_31" material="light_medium_gray_mat" class="visual"/>
+          <geom mesh="link2" class="collision"/>
+            <!-- link3 小臂: joint3 肘部 -154.5°~0 -->
+          <body name="link3" pos="0.28358 0.028726 0" quat="0.998726 0 0 0.0504536" gravcomp="1">
+            <inertial pos="-0.0996835 0.0349477 0.000508026" quat="0.0777021 0.702287 -0.0990541 0.700674"
+              mass="0.290848" diaginertia="0.000241946 0.000222224 0.000100384"/>
+            <joint name="joint3" pos="0 0 0" axis="0 0 1" range="-2.697 0"/>
+            <geom mesh="link3_0" material="darker_gray_mat" class="visual"/>
+            <geom mesh="link3_1" material="red_mat" class="visual"/>
+            <geom mesh="link3_2" material="gray_mat" class="visual"/>
+            <geom mesh="link3_3" material="gray_mat" class="visual"/>
+            <geom mesh="link3_4" material="gray_mat" class="visual"/>
+            <geom mesh="link3_5" material="gray_mat" class="visual"/>
+            <geom mesh="link3_7" material="darker_gray_mat" class="visual"/>
+            <geom mesh="link3_8" material="white_mat" class="visual"/>
+            <geom mesh="link3_9" material="red_mat" class="visual"/>
+            <geom mesh="link3_10" material="white_mat" class="visual"/>
+            <geom mesh="link3_11" material="white_mat" class="visual"/>
+            <geom mesh="link3_12" material="white_mat" class="visual"/>
+            <geom mesh="link3_13" material="white_mat" class="visual"/>
+            <geom mesh="link3_14" material="gray_mat" class="visual"/>
+            <geom mesh="link3_15" material="gray_mat" class="visual"/>
+            <geom mesh="link3_16" material="gray_mat" class="visual"/>
+            <geom mesh="link3_17" material="gray_mat" class="visual"/>
+            <geom mesh="link3_18" material="gray_mat" class="visual"/>
+            <geom mesh="link3_19" material="gray_mat" class="visual"/>
+            <geom mesh="link3_20" material="gray_mat" class="visual"/>
+            <geom mesh="link3_21" material="gray_mat" class="visual"/>
+            <geom mesh="link3_22" material="gray_mat" class="visual"/>
+            <geom mesh="link3_23" material="gray_mat" class="visual"/>
+            <geom mesh="link3_24" material="gray_mat" class="visual"/>
+            <geom mesh="link3_25" material="gray_mat" class="visual"/>
+            <geom mesh="link3_26" material="gray_mat" class="visual"/>
+            <geom mesh="link3_27" material="gray_mat" class="visual"/>
+            <geom mesh="link3_28" material="gray_mat" class="visual"/>
+            <geom mesh="link3" class="collision"/>
+              <!-- link4 腕关节1: joint4 回转 ±105° -->
+            <body name="link4" pos="-0.24221 0.068514 0" quat="0.544767 -0.544769 -0.450809 0.450808" gravcomp="1">
+              <inertial pos="0.000276465 -0.00102804 -0.00472831" quat="0.492305 0.505285 0.503294 0.499017"
+                mass="0.127087" diaginertia="4.87057e-05 4.10595e-05 3.82001e-05"/>
+              <joint name="joint4" axis="0 0 1" range="-1.832 1.832"/>
+              <geom mesh="link4_2" material="gray_mat" class="visual"/>
+              <geom mesh="link4_3" material="darker_gray_mat" class="visual"/>
+              <geom mesh="link4_4" material="gray_mat" class="visual"/>
+              <geom mesh="link4_5" material="gray_mat" class="visual"/>
+              <geom mesh="link4_6" material="gray_mat" class="visual"/>
+              <geom mesh="link4" class="collision"/>
+                <!-- link5 腕关节2: joint5 俯仰 ±70° -->
+              <body name="link5" quat="0.707105 0.707108 0 0" gravcomp="1">
+                <inertial pos="8.82262e-05 0.0566829 -0.0019612" quat="0.507447 0.490986 0.506887 0.494466"
+                  mass="0.144711" diaginertia="0.001 0.001 0.001"/>
+                <joint name="joint5" axis="0 0 1" range="-1.22 1.22"/>
+                <geom mesh="link5_2" material="black_mat" class="visual"/>
+                <geom mesh="link5_3" material="black_mat" class="visual"/>
+                <geom mesh="link5_4" material="darker_gray_mat" class="visual"/>
+                <geom mesh="link5_5" material="gray_mat" class="visual"/>
+                <geom mesh="link5_6" material="light_gray_mat" class="visual"/>
+                <geom mesh="link5_7" material="gray_mat" class="visual"/>
+                <geom mesh="link5_8" material="gray_mat" class="visual"/>
+                <geom mesh="link5" class="collision"/>
+                  <!-- link6 末端法兰: joint6 回转 ±180°; 其 +z 为工具轴 -->
+                <body name="link6" pos="0 0.091 0.0014165" quat="0 0 -0.707105 -0.707108" gravcomp="1">
+                  <inertial pos="0.0010312 0.0121761 0.0315481" quat="0.0230402 0.707091 0.0373344 0.70576" mass="1.2"
+                    diaginertia="0.001 0.001 0.001"/>
+                  <joint name="joint6" axis="0 0 1" range="-3.14 3.14"/>
+                  <geom quat="0.707105 0 0 0.707108" mesh="link6_trimmed" material="gray_mat" class="visual"/>
+                  <!-- <geom quat="0.707105 0 0 0.707108" mesh="link6" material="gray_mat" class="visual"/> -->
+                  <geom quat="0.707105 0 0 0.707108" mesh="link6" class="collision"/>
+                  <!-- ═══ 灵巧手连接件 (来自 灵巧手连接件.STEP, 已启用) ═══
+                       Ø39mm 圆盘带定位扁位, 厚 17.5mm, 4×M3 通孔(20×20mm 方形)
+                       两安装面同心 → 同轴安装, 手相对法兰无侧偏/无旋转 -->
+
+                  <geom name="adapter_visual" class="visual" mesh="adapter" material="darker_gray_mat"/>
+                  <geom name="adapter_collision" class="collision" type="box" size="0.0195 0.0195 0.0088" pos="0 0 0.0088"/>
+                  <!-- ═══ 左 Linker Hand O6 (全部数据来自官方 URDF) ═══
+                       手掌基座: 底面装于连接件前方 17.5mm 处
+                       11 关节 = 6 独立驱动 + 5 联动 (联动等式定义在 scene.xml) -->
+                  <body name="lh_hand_base_link" pos="0 0 0.0175">
+                    <inertial pos="-0.0015778857 -0.00034876726 0.053845222" mass="0.067293524"
+                    diaginertia="5.2263e-5 3.3403e-5 2.2785e-5"/>
+                    <geom name="lh_hand_base_visual" class="visual" mesh="hand_base_link" material="hand_silver"/>
+                    <geom name="lh_hand_base_collision" class="collision" type="mesh" mesh="hand_base_link"/>
+                      <!-- 拇指底座: lh_thumb_cmc_yaw 拇指旋转 0~1.3rad (驱动①) -->
+          <body name="lh_thumb_metacarpals_base2" pos="0.011508 -0.022975 0.032794">
+                      <inertial pos="0.0016280068 -0.0027668017 -0.0018423444" quat="0.95556832 0.070520191 0.057735984 -0.28032597" mass="0.001385883" diaginertia="5.5545172e-08 4.6153663e-08 2.8047459e-08"/>
+                      <joint name="lh_thumb_cmc_yaw" axis="0 0 1" range="0 1.3"/>
+                      <geom class="visual" mesh="thumb_metacarpals_base2" material="hand_black"/>
+                      <geom class="collision" type="mesh" mesh="thumb_metacarpals_base2"/>
+                        <!-- 拇指掌骨: lh_thumb_cmc_pitch 拇指弯曲 0~0.58rad (驱动②) -->
+            <body name="lh_thumb_metacarpals" pos="0.0061649 -0.010678 -0.004891" quat="0.4192 0.472029 -0.272524 0.726079">
+                        <inertial pos="4.248162e-05 1.7418391e-05 0.022834164" quat="0.68789613 -0.16497925 0.16458614 -0.68738066" mass="0.012338159" diaginertia="1.7675784e-06 1.1610094e-06 8.7826311e-07"/>
+                        <joint name="lh_thumb_cmc_pitch" axis="0 1 0" range="0 0.58"/>
+                        <geom class="visual" mesh="thumb_metacarpals" material="hand_silver"/>
+                        <geom class="collision" type="mesh" mesh="thumb_metacarpals"/>
+                          <!-- 拇指末端: lh_thumb_ip 0~1.3282rad (联动: 2.29×拇指弯曲) -->
+              <body name="lh_thumb_distal" pos="0.0037776 0 0.045368">
+                          <inertial pos="-0.004137257 -5.9070452e-08 0.023011402" quat="7.1445412e-05 0.034748769 5.3543983e-07 0.99939608" mass="0.0076333296" diaginertia="1.3107586e-06 1.2248909e-06 2.7226213e-07"/>
+                          <joint name="lh_thumb_ip" axis="0 1 0" range="0 1.3282"/>
+                          <geom class="visual" mesh="thumb_distal" material="hand_silver"/>
+                          <geom class="collision" type="mesh" mesh="thumb_distal"/>
+                        </body>
+                      </body>
+                    </body>
+                      <!-- 食指近节: lh_index_mcp_pitch 0~1.6rad (驱动③) -->
+          <body name="lh_index_proximal" pos="0.0024758 -0.02419 0.098779" quat="0.999657 0.026177 0 0">
+                      <inertial pos="-0.0020865656 2.5383871e-06 0.017273494" quat="-0.111224 0.010133152 0.99374347 -0.00067657559" mass="0.0025317465" diaginertia="2.7576083e-07 2.7291306e-07 7.5830629e-08"/>
+                      <joint name="lh_index_mcp_pitch" axis="0 1 0" range="0 1.6"/>
+                      <geom class="visual" mesh="index_proximal" material="hand_silver"/>
+                      <geom class="collision" type="mesh" mesh="index_proximal"/>
+                        <!-- 食指远节: lh_index_dip 0~1.424rad (联动: 0.89×近节) -->
+            <body name="lh_index_distal" pos="-0.0052516 0 0.036625">
+                        <inertial pos="0.0065898662 5.1385564e-06 0.01943936" quat="0.0040454199 -0.21263527 -0.00053467843 0.97712312" mass="0.0037695109" diaginertia="3.7459086e-07 3.6532765e-07 7.2044721e-08"/>
+                        <joint name="lh_index_dip" axis="0 1 0" range="0 1.424"/>
+                        <geom class="visual" mesh="index_distal" material="hand_silver"/>
+                        <geom class="collision" type="mesh" mesh="index_distal"/>
+                      </body>
+                    </body>
+                      <!-- 中指近节: lh_middle_mcp_pitch 0~1.6rad (驱动④) -->
+          <body name="lh_middle_proximal" pos="0.00052576 -0.00634 0.1027">
+                      <inertial pos="-0.0020866065 2.5691818e-06 0.017273501" quat="-0.11122382 0.01017506 0.99374306 -0.00068161842" mass="0.0025317738" diaginertia="2.7576111e-07 2.7291338e-07 7.5831148e-08"/>
+                      <joint name="lh_middle_mcp_pitch" axis="0 1 0" range="0 1.6"/>
+                      <geom class="visual" mesh="middle_proximal" material="hand_silver"/>
+                      <geom class="collision" type="mesh" mesh="middle_proximal"/>
+                        <!-- 中指远节: lh_middle_dip (联动: 0.89×近节) -->
+            <body name="lh_middle_distal" pos="-0.0052516 0 0.036625">
+                        <inertial pos="0.0065898652 5.1086292e-06 0.019439332" quat="0.0040263302 -0.21263469 -0.00053225573 0.97712333" mass="0.0037695279" diaginertia="3.745922e-07 3.6532906e-07 7.2045291e-08"/>
+                        <joint name="lh_middle_dip" axis="0 1 0" range="0 1.424"/>
+                        <geom class="visual" mesh="middle_distal" material="hand_silver"/>
+                        <geom class="collision" type="mesh" mesh="middle_distal"/>
+                      </body>
+                    </body>
+                      <!-- 无名指近节: lh_ring_mcp_pitch 0~1.6rad (驱动⑤) -->
+          <body name="lh_ring_proximal" pos="0.0010258 0.011135 0.098767" quat="0.999657 -0.026177 0 0">
+                      <inertial pos="-0.0020866793 2.6300042e-06 0.017273493" quat="-0.11122312 0.010249328 0.99374237 -0.00069102314" mass="0.0025318222" diaginertia="2.7576172e-07 2.7291406e-07 7.5832223e-08"/>
+                      <joint name="lh_ring_mcp_pitch" axis="0 1 0" range="0 1.6"/>
+                      <geom class="visual" mesh="ring_proximal" material="hand_silver"/>
+                      <geom class="collision" type="mesh" mesh="ring_proximal"/>
+                        <!-- 无名指远节: lh_ring_dip (联动: 0.89×近节) -->
+            <body name="lh_ring_distal" pos="-0.0052516 0 0.036625">
+                        <inertial pos="0.0065898665 5.0588353e-06 0.019439397" quat="0.0039931505 -0.21263645 -0.00052796681 0.97712308" mass="0.0037694959" diaginertia="3.7458938e-07 3.653261e-07 7.2044099e-08"/>
+                        <joint name="lh_ring_dip" axis="0 1 0" range="0 1.424"/>
+                        <geom class="visual" mesh="ring_distal" material="hand_silver"/>
+                        <geom class="collision" type="mesh" mesh="ring_distal"/>
+                      </body>
+                    </body>
+                      <!-- 小指近节: lh_pinky_mcp_pitch 0~1.6rad (驱动⑥) -->
+          <body name="lh_pinky_proximal" pos="0.0024758 0.028372 0.092741" quat="0.999048 -0.0436192 0 0">
+                      <inertial pos="-0.002086736 2.6806225e-06 0.017273485" quat="-0.11122261 0.010309644 0.9937418 -0.00069862672" mass="0.0025318599" diaginertia="2.7576222e-07 2.7291456e-07 7.5833087e-08"/>
+                      <joint name="lh_pinky_mcp_pitch" axis="0 1 0" range="0 1.6"/>
+                      <geom class="visual" mesh="pinky_proximal" material="hand_silver"/>
+                      <geom class="collision" type="mesh" mesh="pinky_proximal"/>
+                        <!-- 小指远节: lh_pinky_dip (联动: 0.89×近节) -->
+            <body name="lh_pinky_distal" pos="-0.0052516 0 0.036625">
+                        <inertial pos="0.0065898759 5.0308753e-06 0.019439449" quat="0.0039657237 -0.21263764 -0.00052395488 0.97712294" mass="0.0037694807" diaginertia="3.7458818e-07 3.6532472e-07 7.2043436e-08"/>
+                        <joint name="lh_pinky_dip" axis="0 1 0" range="0 1.424"/>
+                        <geom class="visual" mesh="pinky_distal" material="hand_silver"/>
+                        <geom class="collision" type="mesh" mesh="pinky_distal"/>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <contact>
+    <exclude body1="base_link" body2="link1"/>
+  </contact>
+
+  <equality/>
+
+  <!-- 臂部执行器: 官方增益 (joint1-3 kp=80, joint4 kp=40, joint5-6 kp=10) -->
+  <!-- 手部执行器在 scene.xml (增益为仿真稳定自定, 非官方数据) -->
+  <actuator>
+    <position name="joint1" joint="joint1" class="piper" kp="80" kv="5"/>
+    <position name="joint2" joint="joint2" class="piper" kp="80" kv="5"/>
+    <position name="joint3" joint="joint3" class="piper" kp="80" kv="5"/>
+    <position name="joint4" joint="joint4" class="piper" kp="40" kv="5"/>
+    <position name="joint5" joint="joint5" class="piper" kp="10" kv="1.5"/>
+    <position name="joint6" joint="joint6" class="piper" kp="10" kv="1.5"/>
+  </actuator>
+
+  <!-- home 姿态: 底座0° / 肩90° / 肘-77.3°, 腕全 0° -->
+  <keyframe>
+    <key name="home" qpos="0 1.57 -1.3485 0 0 0" ctrl="0 1.57 -1.3485 0 0 0"/>
+  </keyframe>
+</mujoco>

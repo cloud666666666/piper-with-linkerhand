@@ -1,0 +1,71 @@
+<!-- ============================================================
+  组合场景: Piper 臂 (piper/piper.xml) + 灵巧手连接件 + 左 Linker Hand O6
+  本文件负责: 地板/灯光、手部网格资源、手部执行器、手指联动等式
+  臂+连接件+手的实体结构全部在 piper/piper.xml 中
+============================================================ -->
+<mujoco model="piper_linkerhand_o6_left">
+  <compiler meshdir="." angle="radian" autolimits="true"/>
+  <!-- 1kHz 步长; 积分器/摩擦锥与官方 piper 一致 -->
+  <option timestep="0.001" integrator="implicitfast" cone="elliptic" impratio="10"/>
+  <visual>
+    <global offwidth="1280" offheight="720"/>
+    <headlight ambient="0.45 0.45 0.45" diffuse="0.8 0.8 0.8" specular="0.2 0.2 0.2"/>
+  </visual>
+
+  <!-- 引入完整臂+连接件+手 (含臂部执行器×6 和 home 预设) -->
+  <include file="piper/piper.xml"/>
+
+  <!-- 手部网格: 12 个 STL 字节级来自官方 linkerhand-urdf/O6/left/meshes/
+       材质颜色值同官方 URDF (silver=0.5 0.5 0.52, black=0.15 0.15 0.15) -->
+  <asset>
+    <mesh name="hand_base_link" file="linkerhand_o6_left/meshes/hand_base_link.STL"/>
+    <mesh name="thumb_metacarpals_base2" file="linkerhand_o6_left/meshes/thumb_metacarpals_base2.STL"/>
+    <mesh name="thumb_metacarpals" file="linkerhand_o6_left/meshes/thumb_metacarpals.STL"/>
+    <mesh name="thumb_distal" file="linkerhand_o6_left/meshes/thumb_distal.STL"/>
+    <mesh name="index_proximal" file="linkerhand_o6_left/meshes/index_proximal.STL"/>
+    <mesh name="index_distal" file="linkerhand_o6_left/meshes/index_distal.STL"/>
+    <mesh name="middle_proximal" file="linkerhand_o6_left/meshes/middle_proximal.STL"/>
+    <mesh name="middle_distal" file="linkerhand_o6_left/meshes/middle_distal.STL"/>
+    <mesh name="ring_proximal" file="linkerhand_o6_left/meshes/ring_proximal.STL"/>
+    <mesh name="ring_distal" file="linkerhand_o6_left/meshes/ring_distal.STL"/>
+    <mesh name="pinky_proximal" file="linkerhand_o6_left/meshes/pinky_proximal.STL"/>
+    <mesh name="pinky_distal" file="linkerhand_o6_left/meshes/pinky_distal.STL"/>
+    <material name="hand_silver" rgba="0.5 0.5 0.52 1"/>
+    <material name="hand_black" rgba="0.15 0.15 0.15 1"/>
+  </asset>
+
+  <!-- 场景装饰: 地板(2×2m 深蓝灰) + 补光灯, 自建非官方数据 -->
+  <worldbody>
+    <geom name="floor" type="plane" size="2 2 0.01" rgba="0.18 0.20 0.24 1"/>
+    <light name="key" pos="0.5 -1 1.5" dir="-0.3 0.5 -1" diffuse="0.9 0.9 0.9"/>
+  </worldbody>
+
+  <!-- 排除 link6↔手基座 的碰撞 (两者经连接件刚性相连, parent-child 本已免碰, 双保险) -->
+  <contact>
+    <exclude body1="link6" body2="lh_hand_base_link"/>
+  </contact>
+
+  <!-- 手指联动等式 (来自官方 URDF <mimic>, MuJoCo 无 mimic 用等式实现):
+       拇指末端 = 2.29 × 拇指弯曲
+       各指远节 = 0.89 × 各指近节
+       子关节限位 = 联动比 × 驱动关节限位 (在 piper.xml 中已设置) -->
+  <equality>
+    <joint joint1="lh_thumb_ip" joint2="lh_thumb_cmc_pitch" polycoef="0 2.29 0 0 0" solref="0.02 1"/>
+    <joint joint1="lh_index_dip" joint2="lh_index_mcp_pitch" polycoef="0 0.89 0 0 0" solref="0.02 1"/>
+    <joint joint1="lh_middle_dip" joint2="lh_middle_mcp_pitch" polycoef="0 0.89 0 0 0" solref="0.02 1"/>
+    <joint joint1="lh_ring_dip" joint2="lh_ring_mcp_pitch" polycoef="0 0.89 0 0 0" solref="0.02 1"/>
+    <joint joint1="lh_pinky_dip" joint2="lh_pinky_mcp_pitch" polycoef="0 0.89 0 0 0" solref="0.02 1"/>
+  </equality>
+
+  <!-- 手部 6 个独立位置执行器 (拇指旋转/拇指弯曲/食指/中指/无名指/小指)
+       ⚠ kp=2/kv=0.2/力限±2 为仿真稳定自定值, 非官方硬件参数
+       目标值范围: 拇指旋转 0~1.3, 拇指弯曲 0~0.58, 四指 0~1.6 (rad, 0=张开) -->
+  <actuator>
+    <position name="lh_thumb_cmc_yaw" joint="lh_thumb_cmc_yaw" kp="2" kv="0.2" forcerange="-2 2"/>
+    <position name="lh_thumb_cmc_pitch" joint="lh_thumb_cmc_pitch" kp="2" kv="0.2" forcerange="-2 2"/>
+    <position name="lh_index_mcp_pitch" joint="lh_index_mcp_pitch" kp="2" kv="0.2" forcerange="-2 2"/>
+    <position name="lh_middle_mcp_pitch" joint="lh_middle_mcp_pitch" kp="2" kv="0.2" forcerange="-2 2"/>
+    <position name="lh_ring_mcp_pitch" joint="lh_ring_mcp_pitch" kp="2" kv="0.2" forcerange="-2 2"/>
+    <position name="lh_pinky_mcp_pitch" joint="lh_pinky_mcp_pitch" kp="2" kv="0.2" forcerange="-2 2"/>
+  </actuator>
+</mujoco>
