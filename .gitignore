@@ -6,11 +6,7 @@ dataset/
 runs/
 yolov11/
 temfile/
-classification/dataset_process/
 temp/
-comparison_results/
-sim/isaacSimKoch/
-IsaacLabs/
 tmp/
 sim/camera_simple_opt_output/
 sim/koch_img/
@@ -35,8 +31,6 @@ object_detect/data.yaml
 *.zip
 
 outputs/
-wheels/
-lerobot
 
 # 本机专用（提交 GitHub 时排除）
 arm/hand-eye-data/

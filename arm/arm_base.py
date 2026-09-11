@@ -28,10 +28,9 @@ class Arm:
     IK_TILT_TOLERANCE_RAD = np.deg2rad(5.0)
     IK_YAW_TOLERANCE_RAD = np.deg2rad(10.0)
 
-    # arm_type -> (module_path, class_name)
+    # arm_type -> (module_path, class_name)（本仓库已收窄为 Piper 单主题）
     _ARM_TYPES = {
         "piper": ("arm.piper_ctrl_by_sdk", "PiperBySDK"),
-        "lerobo": ("arm.lerobo_arm_control", "LeroboArm"),
     }
 
     def __new__(cls, *args, **kwargs) -> Self:
