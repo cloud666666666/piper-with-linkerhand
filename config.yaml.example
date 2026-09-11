@@ -1,18 +1,8 @@
-# lerobo机械臂为COM*，piper机械臂为can*
+# Piper 机械臂通过 USB-CAN 适配器连接，端口形如 can*（本仓库仅支持 Piper）
 arm_port: can4
-arm_offset:
-  # - 0
-  # - 0
-  # - 0
-  # - 0.0
-  # - 0
-  # - 0
 
-# 机械臂类型，lerobo或piper
+# 机械臂类型（本仓库已收窄为 piper 单主题，只有这一种）
 arm_type: piper
-
-# 机械臂运动速度百分比 1-100，100 为全速，值越小越慢越平稳
-arm_move_speed: 50
 
 # 关节角向量允许的均方误差阈值，小于该值认为到达目标点，单位平方度
 arm_reach_mse_threshold_deg2: 1.0
@@ -33,61 +23,9 @@ catch_time_interval_s: 0.5
 # 获取机械臂各舵机角度值的重试次数
 get_arm_angles_retry_times: 3
 
-# 机械臂移动到旁边的位置，以免挡住相机视野，(x,y,z)，单位米
-# default_gripper_aside_pos:
-#   - 0.0
-#   - 0.2
-#   - 0.15
-
-# =======大模型=======
-
-# 请求大模型的平台url
-# llm_base_url: https://openrouter.ai/api/v1
-# llm_base_url: https://api.ohmygpt.com/v1
-llm_base_url: http://<llm-server-ip>:8001/v1
-
-# 大模型平台的api_key，本地部署则随便填，但不要为空
-llm_api_key: any
-
-# 提示词文件
-prompts_file: prompts.toml
-
-# 代理地址，如请求大模型失败可设置或取消代理
-https_proxy: <proxy-host>:7890
-
-# 使用的大模型名称，见https://openrouter.ai/models 或 https://www.ohmygpt.com/models，必须是支持多模态输入的模型
-# llm_model: gemini-3-flash-preview
-# 或指定本地部署的模型
-llm_model: output/merged-qwen3.5-9b-graspdet
-
-# 如果相机是在机械臂对面，视角和机械臂视角相反（机械臂在画面上方），则设为true
-# 主要影响大模型的左右判断
-RotationCam2Arm: true
-
-
-# 语音转文字后端: "xunfei" 使用讯飞，其他值使用自部署语音转文字服务
-audio2text_backend: no-xunfei
-
-# 自部署语音转文字服务地址
-whisper_url: http://<whisper-server-ip>:8000
-whisper_username: your_username
-whisper_password: your_password
-
-# 语音转文字APIID（讯飞）
-APPID: 
-
-# 语音转文字APISecret
-APISecret: 
-
-# 语音转文字APIKey
-APIKey: 
-
-
-# =======物品分类场景=======
-
 # 以项目根目录为基准
 classification_YOLO_model_path:
-  - /home/czn/roboarm/object_detect/runs/best.pt
+  - object_detect/runs/best.pt   # 需自行训练/获取（见 README「YOLO 模型准备」）
 
 # 默认YOLO识别置信度阈值
 default_conf_thres: 0.5
@@ -95,69 +33,9 @@ default_conf_thres: 0.5
 # 夹爪闭合阈值，小于该值认为夹取失败，范围是[0,1]，越大越开，1表示完全张开（不是角度）
 default_gripper_close_threshold: 0.05
 
-# 各类别放置位置，(x,y)，单位米
-# - pos: 录制阶段固定放置位置
-#     字符串（符号坐标）：x/-x/y/-y 分别表示 target_x/-target_x/target_y/-target_y
-#     数值（绝对坐标）：如 [0.2, 0.4] 直接使用该固定位置
-# - random_pos: auto-reset 阶段随机撒回范围，
-#     两元素列表 [[x_min, x_max], [y_min, y_max]]，与 pos 格式对齐
-# 未匹配到类别时使用下方 default 条目
-class_pos:
-  default:
-    pos: [0.05, 0.45] #
-    random_pos:
-      - [0.0, 0.45]
-      - [-0.3, 0.3]
-  potato:
-    pos: [0.05, 0.4]
-    random_pos:
-      - [0.2, 0.45]
-      - [-0.3, -0.1]
-    keywords:
-      - 'potato'
-      - '土豆'
-  tomato:
-    pos: [0.05, 0.4]
-    random_pos:
-      - [0.2, 0.45]
-      - [-0.1, 0.1]
-    keywords:
-      - 'tomato'
-      - '西红柿'
-  carrot:
-    pos: [0.05, 0.4]
-    random_pos:
-      - [0.2, 0.45]
-      - [0.1, 0.3]
-    keywords:
-      - 'carrot'
-      - '胡萝卜'
-
 # 各类别放置位置，(x,y)，单位米，xy分别表示其原始位置xy，未指定则放回原处
 # keywords表示大模型输出的标签中含有其中某个关键词即认为是这个类别
 place_pos:
-  potato:
-    pos:
-      - x
-      - -y
-    keywords:
-      - 'potato'
-      - '土豆'
-  tomato:
-    pos:
-      - x
-      - -y
-    keywords:
-      - 'tomato'
-      - '西红柿'
-  carrot:
-    pos:
-    - x
-    - -y
-    keywords:
-      - 'carrot'
-      - '胡萝卜'
-random_pos:
   potato:
     pos:
       - x
@@ -193,18 +71,6 @@ place_raise_height: 0.1
 
 # 放置时是否先下降再松开夹爪，默认否
 go_down_before_open_gripper_in_place: true
-
-# --- auto-reset（随机撒回桌面）参数 ---
-# 各类别的随机撒回范围已移至上方 class_pos.{类别}.random_pos 中
-# 工作空间边界，(x_min, x_max)，超出此范围的坐标会被拒绝
-workspace_x_range: [-0.1, 0.55]
-workspace_y_range: [-0.3, 0.55]
-# 随机放置位置离抓取点的最小距离，单位米
-reset_min_place_dist_m: 0.20
-# 每轮最多随机撒回的物体数量
-reset_max_objects_per_cycle: 1
-
-# =======灵心巧手（LinkerHand）灵巧手场景=======
 
 # 灵巧手 Python SDK 仓库根目录（git clone 的 linkerhand-python-sdk 目录），
 # 留空则要求 SDK 已加入 python 环境（PYTHONPATH）
@@ -333,21 +199,4 @@ linker_hand_flat_catch_once: true
 # 本键**不再参与高度计算**，保留仅为兼容旧脚本/参考。
 linker_hand_flat_grasp_height_offset: 0.01
 
-# =======主从臂跟随场景=======
 
-leader_port: COM5
-
-# =======中国象棋场景=======
-
-# 以项目根目录为基准
-chinese_chess_YOLO_model_path:
-  - object_detect\runs\中国象棋\best.pt
-
-# 夹爪张开的角度，张太大会碰到旁边的子，单位度
-gripper_open_degree: 30
-
-# 夹爪朝向固定角度，以棋盘对角线方向抓，防止碰到旁边的棋子，单位度
-gripper_direction_degree: 45
-
-# 默认YOLO识别置信度阈值
-chinese_chess_default_conf_thres: 0.7

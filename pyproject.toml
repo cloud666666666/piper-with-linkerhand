@@ -1,84 +1,42 @@
 [project]
 name = "roboarm"
 version = "0.1.0"
-description = "Roboarm project"
+description = "Piper 机械臂 + LinkerHand O6 灵巧手：平掌包络抓取、2D 手眼标定、YOLO 目标检测与 MuJoCo 仿真"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "deepdiff>=9.0.0",
-    "draccus>=0.11.5",
-    "dynamixel-sdk>=4.0.3",
+    # --- 机械臂（Piper / CAN）---
+    "piper-sdk>=0.6.1",          # Piper 官方 SDK（C_PiperInterface_V2）
+    "python-can[gs-usb]>=4.6.1", # CAN 总线（USB-CAN 适配器，gs_usb 内核模块）
+    # --- 运动学 / 数学 ---
+    "kinpy>=0.5.6",              # URDF 串链与前向运动学（IK 代价、姿态校验）
+    "numpy>=1.24",
+    "scipy>=1.10",               # 旋转、SLSQP 逆运动学
+    "typing-extensions>=4.0",    # arm_base 用到
+    # --- 视觉 / 检测 ---
+    "opencv-python>=4.8",
+    "ultralytics>=8.4.37",       # YOLO 推理（object_detect/detect.py、model_server.py）
+    "pyorbbecsdk2>=2.0.18",      # Orbbec 深度相机（camera/orb_camera*.py）
+    "requests>=2.33.1",          # 远程相机客户端
+    # --- Web / 显示（无头模式把画面通过 Flask 提供）---
     "flask>=3.1.3",
-    "h5py>=3.15.1",
-    "huggingface-hub>=1.10.1",
-    "kinpy>=0.5.6",
-    "matplotlib>=3.10.8",
-    "openai>=2.31.0",
-    "opencv-python>=4.13.0.92",
-    "piper-sdk>=0.6.1",
-    "pydantic>=2.13.0",
-    "pydub>=0.25.1",
-    # 灵巧手（LinkerHand O6）Modbus RTU（RS485）通信：SDK 的 requirements.txt
-    # 固定 pymodbus==3.5.1（core/rs485 驱动按 3.5.x API 编写），此处跟随；
-    # pymodbus 会带上 pyserial（3.5+）。注意 CAN 模式另需 python-can（已在上方声明）。
+    # --- 配置 / 杂项 ---
+    "pyyaml>=6.0",               # utils/config_getter.py、灵巧手 SDK 均 import yaml
+    # --- 灵巧手（LinkerHand O6，Modbus RTU/RS485）---
+    # SDK 的 requirements.txt 固定 pymodbus==3.5.1（core/rs485 驱动按 3.5.x API 编写），
+    # 此处跟随；pymodbus 会带上 pyserial。CAN 模式的灵巧手则用上方的 python-can。
     "pymodbus==3.5.1",
-    "pyorbbecsdk2>=2.0.18",
-    "python-can[gs-usb]>=4.6.1",
-    "pyusb>=1.3.1",
-    # 直接依赖：utils/config_getter.py 与灵巧手 SDK（读取 setting.yaml/姿态表）都 import yaml；
-    # 之前只靠 ultralytics/draccus 等传递带入，这里显式声明。
-    "pyyaml>=6.0",
-    "requests>=2.33.1",
-    "serial>=0.0.97",
-    "socksio>=1.0.0",
-    "sounddevice>=0.5.5",
-    "toml>=0.10.2",
-    "tqdm>=4.67.3",
-    "ultralytics>=8.4.37",
-    "websocket>=0.2.1",
-    "xlrd2>=1.3.4",
-    "xlwt>=1.3.0",
-    "lerobot",
+    # --- MuJoCo 仿真（sim/piper_linker）---
+    "mujoco>=3.2",
+    "pillow>=10.0",              # server.py 的视频帧编码
+    "fastapi>=0.110",            # server.py Web 服务
+    "uvicorn>=0.29",             # server.py 启动
+    "websockets>=12.0",          # bridge_client.py 与仿真桥接
 ]
 
-[tool.uv.sources]
-lerobot = { path = "lerobot" }
-
-# Jetson(JetPack 6.1 / CUDA 12.6)GPU 专用 torch:NVIDIA 官方构建,支持 Orin sm_87。
-# 仅对本机平台生效;其他平台仍从 PyPI 解析。
-torch = { path = "wheels/torch-2.5.0a0+872d972e41.nv24.8-cp310-cp310-linux_aarch64.whl", marker = "platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'" }
-
-# torchvision 没有兼容 Jetson + NVIDIA torch 的预编译轮子(PyPI 的 0.20.0 是
-# 基于 torch 2.5.0 正式版构建的,C++ ABI 与 NVIDIA 预发布版不匹配,导入即崩)。
-# 本 wheel 是 torchvision v0.20.0 源码在本机 NVIDIA torch 2.5.0a0 上编译的
-# (构建步骤见 wheels/ 目录),版本元数据规范化为 0.20.0。
-torchvision = { path = "wheels/torchvision-0.20.0-cp310-cp310-linux_aarch64.whl", marker = "platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'" }
-
-# torchcodec 没有兼容 Jetson + torch 2.5 的轮子,用元数据存根包满足依赖声明,
-# lerobot 运行时会自动回退到 pyav 视频解码。
-torchcodec = { path = "stubs/torchcodec", marker = "platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'" }
-
-[tool.uv]
-# 本锁文件只覆盖本机环境(aarch64/linux/py3.10);Jetson 专用 torch 只提供 cp310 轮子
-environments = ["platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'"]
-
-# 本机(aarch64/linux/py3.10)配套:NVIDIA torch 2.5.0a0 需要 torchvision 0.20.0
-# (本机源码构建的 wheel,见 [tool.uv.sources])
-constraint-dependencies = [
-    "torchvision==0.20.0; platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'",
-]
-
-# torchvision 0.20.0 声明依赖 torch==2.5.0,需覆盖为本机安装的 NVIDIA 构建版本;
-# lerobot 要求 torchvision>=0.21.0,但 0.21+ 需要 torch 2.6(NVIDIA 无 Jetson 构建),
-# 故仅对本机放宽到 >=0.20.0。
-# torch 2.5 与 numpy 2 不兼容(tensor.numpy() 会失败),强制本机用 numpy 1.x;
-# rerun-sdk/opencv 4.12+ 的 numpy>=2 要求一并被覆盖。注意:rerun-sdk 0.24+
-# 是用 numpy 2 编译的,在 numpy 1.x 下无法导入——本项目的录放/分类流程不使用
-# rerun(仅 lerobot 可视化用),如需可视化请在 x86 训练机上运行。
-override-dependencies = [
-    "torch==2.5.0a0+872d972e41.nv24.8; platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'",
-    "torchvision>=0.20.0; platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'",
-    # opencv 4.12+ 要求 numpy>=2,与 numpy 1.x(torch 2.5 需要)冲突,本机退回 4.11.x
-    "opencv-python>=4.11.0,<4.12; platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'",
-    "numpy<2; platform_machine == 'aarch64' and sys_platform == 'linux' and python_version == '3.10'",
-]
+# 说明：
+# - torch 由 ultralytics 传递引入；Jetson 上如需 NVIDIA GPU 版 torch，请自行安装
+#   （本仓库不再附带 wheels/ 与 stubs/，也不再有 lerobot/本地 torch 源）。
+# - 灵巧手 SDK（third_party/linkerhand-python-sdk）以 git submodule 提供，不是 pip 包：
+#   用 `git submodule update --init` 拉取，并在 config.yaml 里设置 linker_hand_sdk_path
+#   （或设 PYTHONPATH），见 README「灵巧手（LinkerHand O6）环境准备」。
