@@ -56,7 +56,7 @@
 
   <div id="side">
     <h1>Piper + LinkerHand O6（左）</h1>
-    <div class="sub">three.js + URDFLoader 静态查看器 · 网格已按面数精简（原 22MB → 5.7MB）</div>
+    <div class="sub">three.js + URDFLoader 静态查看器 · 模型由 <b>sim/piper_linker 的 MuJoCo 场景（scene.xml）</b>生成（<code>tools/sync_viewer_urdf.py</code>，link 帧与仿真逐点一致）· 网格已按面数精简</div>
 
     <h2>预设姿态</h2>
     <div class="btns">
@@ -91,7 +91,8 @@
 
     <h2>说明</h2>
     <div class="card sub">
-      · 关节名与限位直接取自 <b>robot.urdf</b>（6 臂关节 + 11 手关节 + 1 固定适配关节）。<br />
+      · 关节名与限位直接取自 <b>robot.urdf</b>（6 臂关节 + 11 手关节 + 1 固定适配关节），该 URDF 由 <code>sim/piper_linker</code> 的 MJCF 生成，与仿真模型逐点一致。<br />
+      · 腕部末端按 MJCF 显示：<b>link6_trimmed（不含夹爪）+ 灵巧手连接件 adapter</b>，手基座相对法兰前移 17.5mm。<br />
       · 平抓姿态预设 = 本仓库联调用值：J1~J4 = [-3.87, 90.29, -7.66, 0.76]°、J5 = -69.0°、J6 = 6.75°。<br />
       · 握拳值 [102,18,0,0,0,0] 为 SDK 官方通用示例值（O6 右手未定义握拳），待实机确认。<br />
       · 本页为纯静态查看器，<b>不连接机械臂/灵巧手</b>，可放心在任意机器打开。
@@ -151,12 +152,12 @@
   // O6 驱动顺序（与 SDK LinkerHandO6Can.JOINT_KEYS 一致）：
   // [thumb_pitch, thumb_yaw, index, middle, ring, little]
   const HAND_MOTORS = [
-    { label: "大拇指弯曲", joints: [["lh_thumb_cmc_pitch", 0.58, "flex"], ["lh_thumb_ip", 1.08, "flex"]] },
+    { label: "大拇指弯曲", joints: [["lh_thumb_cmc_pitch", 0.58, "flex"], ["lh_thumb_ip", 1.3282, "flex"]] },
     { label: "大拇指横摆", joints: [["lh_thumb_cmc_yaw", 1.30, "extend"]] },
-    { label: "食指", joints: [["lh_index_mcp_pitch", 1.60, "flex"], ["lh_index_dip", 1.43, "flex"]] },
-    { label: "中指", joints: [["lh_middle_mcp_pitch", 1.60, "flex"], ["lh_middle_dip", 1.43, "flex"]] },
-    { label: "无名指", joints: [["lh_ring_mcp_pitch", 1.60, "flex"], ["lh_ring_dip", 1.43, "flex"]] },
-    { label: "小指", joints: [["lh_pinky_mcp_pitch", 1.60, "flex"], ["lh_pinky_dip", 1.43, "flex"]] },
+    { label: "食指", joints: [["lh_index_mcp_pitch", 1.60, "flex"], ["lh_index_dip", 1.424, "flex"]] },
+    { label: "中指", joints: [["lh_middle_mcp_pitch", 1.60, "flex"], ["lh_middle_dip", 1.424, "flex"]] },
+    { label: "无名指", joints: [["lh_ring_mcp_pitch", 1.60, "flex"], ["lh_ring_dip", 1.424, "flex"]] },
+    { label: "小指", joints: [["lh_pinky_mcp_pitch", 1.60, "flex"], ["lh_pinky_dip", 1.424, "flex"]] },
   ];
   const PRESET_HAND_OPEN = [255, 70, 255, 255, 255, 255];
   const PRESET_HAND_FIST = [102, 18, 0, 0, 0, 0];

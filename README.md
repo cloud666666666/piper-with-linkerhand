@@ -392,8 +392,10 @@ MUJOCO_GL=egl python tools/render_demo.py     --width 800 --height 600 --fps 20 
 关节限位与抓取姿态：
 
 - `docs/viewer/index.html`：查看器页面（three.js + URDFLoader，依赖已本地 vendor，无需联网）
-- `docs/viewer/robot.urdf`：整机 URDF（Piper 7 段 + LinkerHand O6 左手 12 段；mesh 改为相对路径 `meshes/*.stl`）
-- `docs/viewer/meshes/`：精简后的网格（原 22 MB → 约 5.7 MB；用 trimesh 二次误差简化面片，保留外形）
+- `docs/viewer/robot.urdf`：整机 URDF（Piper 7 段 + LinkerHand O6 左手 12 段；mesh 相对路径 `meshes/*.stl`）。
+  **由 `sim/piper_linker` 的 MJCF（scene.xml）生成**（`sim/piper_linker/tools/sync_viewer_urdf.py`，可 `--verify` 比对），
+  link 帧/关节名/限位与仿真逐点一致；腕部末端按 MJCF 显示 link6_trimmed + 灵巧手连接件 adapter（无夹爪）
+- `docs/viewer/meshes/`：精简后的网格（19 个 STL ≈ 5.5 MB，用 trimesh 二次误差简化面片、保留外形）
 
 功能：轨道旋转/平移/缩放、6 个机械臂关节滑条（度）、6 个灵巧手驱动滑条（O6 值 0–255）、
 预设按钮（手：张开 `[255,70,255,255,255,255]` / 握拳 `[102,18,0,0,0,0]`；臂：初始 /
