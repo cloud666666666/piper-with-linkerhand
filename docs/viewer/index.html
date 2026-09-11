@@ -296,7 +296,9 @@
   loader.loadMeshCb = function (path, manager, done) {
     new THREE.STLLoader(manager).load(
       path,
-      (geom) => done(geom),
+      // 注意：URDFLoader 会对回调对象调用 obj.position.set(...) 等，
+      // 必须返回 Mesh（裸 BufferGeometry 没有 .position，会抛 TypeError）
+      (geom) => done(new THREE.Mesh(geom)),
       undefined,
       (e) => { showError("网格加载失败：" + path, e); done(null); }
     );
